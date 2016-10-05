@@ -1,0 +1,68 @@
+
+Run a basic java-android app DONE
+youtube fragment DONE
+mithril like layout (https://github.com/zserge/anvil) DONE
+Use java 8 lambdas DONE
+
+---high-level--
+ -Local files & Youtube working
+
+ - touch not working on tracks DONE
+ - fix layout when menu is shown DONE
+ - add anvil based image area DONE
+
+ - implement real menu items backend for local files DONE
+ - move menu creation code so service and use eventbus for menu requests DONE
+ - Albums menu item DONE
+ - update tracks with current playlist DONE
+ - fix main image area DONE
+ - remove track duplicates (with Set) DONE
+ - write Player class DONE
+ - update big button status with player changes DONE
+ - write local music player DONE
+ - --------------success--------------
+ - play-next checkbox
+ - tidy up code (delete & check remaining and move)
+ - move first label in track list to bottom of list entry
+ - better menu-back button
+ - cancel menu change
+ - smaller menu items for sub menus
+ - space under big button
+ - commit to github
+
+ - collapse group when menu is shown
+ - playlist reordering
+
+ - add youtube
+
+
+
+
+
+
+
+
+Start again with same project definition
+ -just add Main w/o youtube and only menu
+ -menu state is held in activity, updated by void async methods on menu state class?
+ -need async update to menu
+
+Steps:
+ -non functional control panel
+ -non functional tracks list (hard coded list)
+ -non functional menu (hard coded tree)
+
+ -implement backend for menu (for local files & youtube)
+ -implement music player (and update tracks)
+ -implement controls
+
+ (all using anvil and lambdas...
+
+
+use glide or check image loading is as good as glide
+use better http library (volley?)
+
+support phone layout (try on phone)
+put on playstore
+
+
