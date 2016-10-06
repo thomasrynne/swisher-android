@@ -1,4 +1,4 @@
-package thomas.swisher;
+package thomas.swisher.service;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -13,14 +13,14 @@ import android.widget.Toast;
 import com.google.common.base.Optional;
 
 import lombok.val;
-import uk.co.thomasrynne.swisher.CardManager;
-import uk.co.thomasrynne.swisher.CardStore;
-import uk.co.thomasrynne.swisher.Events;
-import uk.co.thomasrynne.swisher.Songs;
+import thomas.swisher.JsonEventHandler;
+import thomas.swisher.MediaHandler;
+import thomas.swisher.todo.CardStore;
+import thomas.swisher.todo.Songs;
 import thomas.swisher.ui.UIBackendEvents;
 import thomas.swisher.tree.MainMenuTree;
-import uk.co.thomasrynne.swisher.core.Player;
-import uk.co.thomasrynne.swisher.sources.MediaStoreSource;
+import thomas.swisher.service.player.Player;
+import thomas.swisher.service.localmedia.MediaStoreSource;
 
 
 public class SwisherService extends Service {
@@ -45,19 +45,19 @@ public class SwisherService extends Service {
             }
         }
         @Subscribe(threadMode = ThreadMode.BACKGROUND)
-        public void onEventBackgroundThread(Events.CardWaveEvent cardEvent) {
+        public void onEventBackgroundThread(UIBackendEvents.CardWaveEvent cardEvent) {
             cardManager.handleCard(cardEvent.cardNumber);
         }
         @Subscribe(threadMode = ThreadMode.BACKGROUND)
-        public void onEventBackgroundThread(Events.RecordPlayListEvent event) {
+        public void onEventBackgroundThread(UIBackendEvents.RecordPlayListEvent event) {
             cardManager.record("Playlist", jsonEventHandler.playListJson());
         }
         @Subscribe(threadMode = ThreadMode.BACKGROUND)
-        public void onEventBackgroundThread(Events.RecordCardEvent event) {
+        public void onEventBackgroundThread(UIBackendEvents.RecordCardEvent event) {
             cardManager.record(event.name, event.json);
         }
         @Subscribe(threadMode = ThreadMode.BACKGROUND)
-        public void onEventBackgroundThread(Events.DoEvent event) {
+        public void onEventBackgroundThread(UIBackendEvents.DoEvent event) {
             jsonEventHandler.jsonHandler.handle(event.json);
         }
         @Subscribe(threadMode = ThreadMode.BACKGROUND)
@@ -77,7 +77,7 @@ public class SwisherService extends Service {
             player.pausePlay();
         }
         @Subscribe(threadMode = ThreadMode.BACKGROUND)
-        public void onEventBackgroundThread(Events.CancelRecordEvent event) {
+        public void onEventBackgroundThread(UIBackendEvents.CancelRecordEvent event) {
             cardManager.cancelRecord();
         }
         @Subscribe(threadMode = ThreadMode.BACKGROUND)
@@ -89,15 +89,19 @@ public class SwisherService extends Service {
             player.swap(event.fromPosition, event.toPosition);
         }
         @Subscribe(threadMode = ThreadMode.BACKGROUND)
+        public void onEventBackgroundThread(UIBackendEvents.AutoPlayNextEvent event) {
+            player.updateAutoPlayNext(event.playNext);
+        }
+        @Subscribe(threadMode = ThreadMode.BACKGROUND)
         public void onEventBackgroundThread(UIBackendEvents.PlayTrackByIndexEvent event) {
             player.playTrack(event.group, event.track);
         }
         @Subscribe(threadMode = ThreadMode.BACKGROUND)
-        public void onEventBackgroundThread(Events.RefreshAlbumCoversEvent event) {
+        public void onEventBackgroundThread(UIBackendEvents.RefreshAlbumCoversEvent event) {
             Songs.init(getContentResolver());
         }
         @Subscribe(threadMode = ThreadMode.BACKGROUND)
-        public void onEventMainThread(Events.ToastEvent event) {
+        public void onEventMainThread(UIBackendEvents.ToastEvent event) {
             Toast.makeText(getApplicationContext(), event.message, Toast.LENGTH_LONG).show();
         }
     };
@@ -128,7 +132,6 @@ public class SwisherService extends Service {
         if (requestMenuEvent != null) { //resend if there was already a request
             eventBus.postSticky(requestMenuEvent);
         }
-        eventBus.post(new Events.ServiceStarted());
     };
     
 	public int onStartCommand(Intent intent, int flags, int startId) {

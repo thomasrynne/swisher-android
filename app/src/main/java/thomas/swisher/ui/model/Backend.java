@@ -7,8 +7,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import trikita.anvil.Anvil;
-import uk.co.thomasrynne.swisher.Events;
-import uk.co.thomasrynne.swisher.Utils;
+import thomas.swisher.utils.Utils;
 import thomas.swisher.shared.Core;
 import thomas.swisher.ui.UIBackendEvents;
 
@@ -43,7 +42,6 @@ public class Backend {
         }
         @Subscribe(threadMode = ThreadMode.MAIN)
         public void latestTracks(UIBackendEvents.TracksLatest tracks) {
-            Log.i("X", "Latest tracks " + tracks.isPlaying);
             core.updateIsPlaying(tracks.isPlaying);
             core.tracks().latest(tracks.tracks);
             Anvil.render();
@@ -63,20 +61,22 @@ public class Backend {
     }
 
     public void addToPlaylist(Utils.FlatJson json) {
-        Log.i("C", "add json");
         eventBus.post(new UIBackendEvents.AddTrackEvent(json));
     }
 
     public void play(Utils.FlatJson json) {
-        Log.i("C", "play json");
         eventBus.post(new UIBackendEvents.PlayTrackEvent(json));
     }
 
     public void record(String name, Utils.FlatJson json) {
-        eventBus.post(new Events.RecordCardEvent(name, json));
+        eventBus.post(new UIBackendEvents.RecordCardEvent(name, json));
     }
 
     public void playTrackAt(int group, int track) {
         eventBus.post(new UIBackendEvents.PlayTrackByIndexEvent(group, track));
+    }
+
+    public void updateAutoPlayNext(boolean playNext) {
+        eventBus.post(new UIBackendEvents.AutoPlayNextEvent(playNext));
     }
 }

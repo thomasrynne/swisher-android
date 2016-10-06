@@ -1,4 +1,4 @@
-package uk.co.thomasrynne.swisher;
+package thomas.swisher.service;
 
 import org.greenrobot.eventbus.EventBus;
 import org.json.JSONObject;
@@ -6,6 +6,9 @@ import org.json.JSONObject;
 import android.util.Log;
 
 import thomas.swisher.JsonEventHandler;
+import thomas.swisher.todo.CardStore;
+import thomas.swisher.ui.UIBackendEvents;
+import thomas.swisher.utils.Utils;
 
 public class CardManager {
 
@@ -24,7 +27,7 @@ public class CardManager {
         synchronized (this) {
             recordJSON = json;
         }
-        eventBus.post(new Events.RecordMode(name));
+        eventBus.post(new UIBackendEvents.RecordMode(name));
         Log.i("SWISHER", "in record mode " + name);
     }
 
@@ -32,12 +35,12 @@ public class CardManager {
         synchronized (this) {
             recordJSON = null;
         }
-        eventBus.post(new Events.RecordCompleteEvent());
+        eventBus.post(new UIBackendEvents.RecordCompleteEvent());
         Log.i("SWISHER", "record mode cancelled");
     }
 
     private void toastMessage(String message) {
-        eventBus.post(new Events.ToastEvent(message));
+        eventBus.post(new UIBackendEvents.ToastEvent(message));
     }
 
     public void handleCard(String card) {
@@ -46,7 +49,7 @@ public class CardManager {
                 store.store(card, recordJSON.json);
                 toastMessage("Recorded");
                 recordJSON = null;
-                eventBus.post(new Events.RecordCompleteEvent());
+                eventBus.post(new UIBackendEvents.RecordCompleteEvent());
                 Log.i("SWISHER", "recorded " + card);
             } else {
                 JSONObject entry = store.read(card);

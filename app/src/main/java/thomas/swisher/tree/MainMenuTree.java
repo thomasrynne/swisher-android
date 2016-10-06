@@ -1,7 +1,7 @@
 package thomas.swisher.tree;
 
 
-import com.annimon.stream.Stream;
+import com.google.common.collect.FluentIterable;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -9,12 +9,10 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import lombok.Value;
 import lombok.val;
 import thomas.swisher.shared.Core;
 import thomas.swisher.ui.UIBackendEvents;
-import uk.co.thomasrynne.swisher.Events;
-import uk.co.thomasrynne.swisher.Utils;
+import thomas.swisher.utils.Utils;
 
 /**
  */
@@ -41,8 +39,8 @@ public class MainMenuTree {
         }
         @Override
         public List<Menus.MenuEntry> items() {
-            return Utils.list(Stream.of(Arrays.asList("stop", "pause", "next", "previous")).
-                    map(MainMenuTree::createActionItem));
+            return FluentIterable.from(Arrays.asList("stop", "pause", "next", "previous")).
+                    transform(MainMenuTree::createActionItem).toList();
         }
     };
 
@@ -55,7 +53,7 @@ public class MainMenuTree {
 
     private final Core.DoItUIMenuItem recordPlaylist = new Core.DoItUIMenuItem(
             "Record Playlist",
-            () -> eventBus.post(new Events.RecordPlayListEvent())
+            () -> eventBus.post(new UIBackendEvents.RecordPlayListEvent())
     );
 
 
@@ -73,13 +71,13 @@ public class MainMenuTree {
     public Core.MenuItemList menuFor(Core.MenuPath path) {
         Menus.Menu menu = root;
         for (String pathEntry : path.getPath()) {
-            val subMenus = Stream.of(menu.items()).select(Menus.SubMenuMenuEntry.class);
-            menu = subMenus.filter( (sub) -> sub.name().equals(pathEntry) ).findSingle().get().getMenu();
+            val subMenus = FluentIterable.from(menu.items()).filter(Menus.SubMenuMenuEntry.class);
+            menu = subMenus.filter( (sub) -> sub.name().equals(pathEntry) ).first().get().getMenu();
         }
-        return new Core.MenuItemList(Utils.list(Stream.of(menu.items()).map((entry) -> entry.toUI())));
+        return new Core.MenuItemList(FluentIterable.from(menu.items()).transform((entry) -> entry.toUI()).toList());
     }
 
-    private static Menus.FixedItemMenuEntry createActionItem(String action) {
+    private static Menus.MenuEntry createActionItem(String action) {
         return new Menus.FixedItemMenuEntry(new Core.CardActionUIMenuITem(
             action,
             Utils.json().add("action", action).build()

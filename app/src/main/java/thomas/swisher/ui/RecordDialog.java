@@ -9,9 +9,6 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import thomas.swisher.ui.OnKeyCardReader;
-import uk.co.thomasrynne.swisher.Events;
-
 /**
  */
 public class RecordDialog {
@@ -22,7 +19,7 @@ public class RecordDialog {
         builder.setMessage("Wave card now to record");
         builder.setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
             @Override public void onClick(DialogInterface arg0, int arg1) {
-                eventBus.post(new Events.CancelRecordEvent());
+                eventBus.post(new UIBackendEvents.CancelRecordEvent());
             }});
         final AlertDialog dialog = builder.create();
         final Object[] listener = new Object[] { null };
@@ -35,7 +32,7 @@ public class RecordDialog {
         dialog.setCanceledOnTouchOutside(true);
         listener[0] = new Object() {
             @Subscribe(threadMode = ThreadMode.MAIN)
-            public void onEventMainThread(Events.RecordCompleteEvent event) {
+            public void onEventMainThread(UIBackendEvents.RecordCompleteEvent event) {
                 dialog.hide();
             }
         };

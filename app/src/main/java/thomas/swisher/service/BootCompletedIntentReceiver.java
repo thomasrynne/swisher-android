@@ -1,10 +1,10 @@
-package uk.co.thomasrynne.swisher;
+package thomas.swisher.service;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-import thomas.swisher.SwisherService;
+import thomas.swisher.service.SwisherService;
 
 public class BootCompletedIntentReceiver extends BroadcastReceiver {
     @Override

@@ -1,11 +1,10 @@
 package thomas.swisher.ui.model;
 
 import android.net.Uri;
-import android.util.Log;
 
 import com.google.common.base.Optional;
 
-import uk.co.thomasrynne.swisher.Utils;
+import thomas.swisher.utils.Utils;
 
 /**
  * The core ui class which the layouts wrap.
@@ -104,6 +103,10 @@ public class UIModel {
 
         public boolean isPlayNext() {
             return playNext;
+        }
+
+        public void updateAutoPlayNext(boolean playNext) {
+            backend.updateAutoPlayNext(playNext);
         }
     }
 }

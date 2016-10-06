@@ -1,9 +1,8 @@
-package uk.co.thomasrynne.swisher.core;
+package thomas.swisher.service.player;
 
 import android.net.Uri;
 import android.util.Log;
 
-import com.annimon.stream.function.Consumer;
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 
@@ -20,15 +19,14 @@ import lombok.val;
 import thomas.swisher.MediaHandler;
 import thomas.swisher.shared.Core;
 import thomas.swisher.ui.UIBackendEvents;
-import uk.co.thomasrynne.swisher.Utils;
+import thomas.swisher.utils.Utils;
 
 /**
- * If it was working this class would do the following
- *  -manage the list of tracks
- *  -manage the play/paused state
- *  -broadcast updates to playlist + pause/play status
- *  -manage the current 'active' player
- *
+ * This class doesn't actually make sounds it just creates and controls the current TracksPlayer
+ *  -manages the list of tracks
+ *  -manages the play/paused state
+ *  -broadcasts updates to playlist + pause/play status
+ *  -manages the current 'active' player
  */
 public class Player {
 
@@ -90,13 +88,13 @@ public class Player {
         if (tracksList.size() == 1) { //only one group, just cueBeginning start
             currentTrackInGroup = 0;
             isPlaying = false;
-            onCurrentPlayer(TracksPlayer::cueBeginning);
+            currentPlayer.cueBeginning();
         } else if ((currentGroup+1) < tracksList.size()) { //there is a next group, play/cue it
             currentGroup++;
             currentTrackInGroup=0;
             initPlayer(tracksList.get(currentGroup).entry.player, playNext);
         } else { //we got to the end, cueBeginning the start group
-            onCurrentPlayer(TracksPlayer::clear);
+            currentPlayer.clear();
             currentTrackInGroup = 0;
             currentGroup = 0;
             initPlayer(tracksList.get(0).entry.player, false);
@@ -105,30 +103,22 @@ public class Player {
     }
 
     private void initPlayer(MediaHandler.ThePlayer player, boolean playNow) {
-        onCurrentPlayer(TracksPlayer::clear);
+        currentPlayer.clear();
         currentPlayerInstance = sequence.incrementAndGet();
         currentPlayer = player.create(playNow, playNext, new ListenerForPlayer(currentPlayerInstance));
 
     }
 
-    void onCurrentPlayer(Consumer<TracksPlayer> function) {
-        if (currentPlayer != null) {
-            function.accept(currentPlayer);
-        }
-    }
-
     public void play(List<Player.PlaylistEntry> tracks) {
+        tracksList.clear();
         if (!tracks.isEmpty()) {
             initPlayer(tracks.get(0).entry.player, true);
-            tracksList.clear();
             tracksList.addAll(tracks);
             isPlaying = true;
             currentGroup = 0;
             currentTrackInGroup = 0;
         } else {
-            onCurrentPlayer(TracksPlayer::clear);
-            tracksList.clear();
-            isPlaying = false;
+            nullOutPlayer();
         }
         broadcastTrackList();
     }
@@ -144,16 +134,17 @@ public class Player {
     }
 
     public void remove(int groupPosition) {
+        tracksList.remove(groupPosition);
         if (currentGroup == groupPosition) {
-            onCurrentPlayer(TracksPlayer::clear);
             if (!tracksList.isEmpty()) {
                 initPlayer(tracksList.get(0).entry.player, false);
+                currentGroup = 0;
+                currentTrackInGroup = 0;
+                isPlaying = false;
+            } else {
+                nullOutPlayer();
             }
-            currentGroup = 0;
-            currentTrackInGroup = 0;
-            isPlaying = false;
         }
-        tracksList.remove(groupPosition);
         broadcastTrackList();
     }
 
@@ -172,41 +163,45 @@ public class Player {
 
     public void pausePlay() {
         isPlaying = !isPlaying;
-        onCurrentPlayer(TracksPlayer::pausePlay);
+        currentPlayer.pausePlay();
         broadcastTrackList();
     }
     public void stop() {
-        onCurrentPlayer(TracksPlayer::stop);
+        currentPlayer.stop();
         isPlaying = false;
         broadcastTrackList();
     }
 
-    public void updatePlayNext(boolean playNext) {
+    public void updateAutoPlayNext(boolean playNext) {
         this.playNext = playNext;
-        onCurrentPlayer(player -> player.playNext(this.playNext));
+        currentPlayer.playNext(playNext);
         broadcastTrackList();
     }
 
     public void playTrack(int group, int track) {
         if (currentGroup != group) {
             initPlayer(tracksList.get(group).entry.player, false);
-            onCurrentPlayer(p -> p.jumpTo(track));
+            currentPlayer.jumpTo(track);
             currentGroup = group;
             currentTrackInGroup = track;
         } else {
             currentTrackInGroup = track;
-            onCurrentPlayer( (player) -> player.jumpTo(track));
+            currentPlayer.jumpTo(track);
         }
         isPlaying = true;
         broadcastTrackList();
     }
 
-    public void clearPlaylist() {
-        onCurrentPlayer(TracksPlayer::clear);
+    private void nullOutPlayer() {
+        initPlayer((playNow, playNext, listener) -> new NullTracksPlayer(), false);
         currentGroup = -1;
         currentTrackInGroup = -1;
-        currentPlayer = new NullTracksPlayer();
+        isPlaying = false;
+    }
+
+    public void clearPlaylist() {
         tracksList.clear();
+        nullOutPlayer();
         broadcastTrackList();
     }
 

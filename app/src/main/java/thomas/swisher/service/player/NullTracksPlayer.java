@@ -1,4 +1,4 @@
-package uk.co.thomasrynne.swisher.core;
+package thomas.swisher.service.player;
 
 /**
  *

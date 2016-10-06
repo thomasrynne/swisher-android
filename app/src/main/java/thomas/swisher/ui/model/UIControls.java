@@ -45,8 +45,8 @@ public class UIControls {
             uiRoot.fullScreen();
         }
 
-        public void updatePlayNext(Object isChecked) {
-
+        public void updateAutoPlayNext(boolean playNext) {
+            uiRoot.updateAutoPlayNext(playNext);
         }
     }
 }

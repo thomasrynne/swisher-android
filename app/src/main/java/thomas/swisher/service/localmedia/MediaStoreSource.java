@@ -1,4 +1,4 @@
-package uk.co.thomasrynne.swisher.sources;
+package thomas.swisher.service.localmedia;
 
 import android.content.Context;
 import android.net.Uri;
@@ -17,14 +17,12 @@ import java.util.List;
 import lombok.Value;
 import lombok.val;
 import thomas.swisher.MediaHandler;
-import thomas.swisher.localmedia.AsyncMediaPlayer;
 import thomas.swisher.tree.MenuUtils;
 import thomas.swisher.tree.Menus;
-import uk.co.thomasrynne.swisher.Songs;
-import uk.co.thomasrynne.swisher.Utils;
+import thomas.swisher.todo.Songs;
+import thomas.swisher.utils.Utils;
 import thomas.swisher.shared.Core;
-import thomas.swisher.tree.MainMenuTree;
-import uk.co.thomasrynne.swisher.core.TracksPlayer;
+import thomas.swisher.service.player.TracksPlayer;
 
 /**
  */

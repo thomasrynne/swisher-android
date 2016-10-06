@@ -1,4 +1,4 @@
-package uk.co.thomasrynne.swisher;
+package thomas.swisher.todo;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,6 +25,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import thomas.swisher.ui.UIBackendEvents;
+
 
 class CardStoreDbHelper extends SQLiteOpenHelper {
     public CardStoreDbHelper(Context context) {
@@ -50,7 +52,7 @@ public class CardStore {
 	public JSONObject read(String card) {
 		JSONObject value = readLocal(card);
 		if (value == null) {
-            eventBus.post(new Events.ToastEvent("Looking up card..."));
+            eventBus.post(new UIBackendEvents.ToastEvent("Looking up card..."));
 			value = readRemote(card);
 			if (value != null) { store(card, value); }
 			return value;
@@ -61,12 +63,12 @@ public class CardStore {
 	
 	private JSONObject readRemote(String card) {
 		try {
-			String buffer = Utils.readURL("http://swisher.herokuapp.com/cardservice/read?cardnumber="+card);
+			String buffer = readURL("http://swisher.herokuapp.com/cardservice/read?cardnumber="+card);
 			if (buffer != null) {
 			    JSONArray list = new JSONArray(buffer);
 			    return list.getJSONObject(0);
 		    } else {
-                eventBus.post(new Events.ToastEvent("Nothing found"));
+                eventBus.post(new UIBackendEvents.ToastEvent("Nothing found"));
 		    	return null;
 		    }
 		} catch (JSONException e) {
@@ -77,7 +79,35 @@ public class CardStore {
 			return null;
 		}
 	}
-	
+
+	private static String readURL(String url) throws IOException {
+		return readURL(url, null);
+	}
+
+	private static String readURL(String url, String token) throws IOException {
+		DefaultHttpClient defaultClient = new DefaultHttpClient();
+		HttpGet httpGetRequest = new HttpGet(url);
+		if (token != null) {
+			httpGetRequest.setHeader("Authorization", "Bearer " + token);
+		}
+		Log.i("SWISHER", "Request " + token);
+		HttpResponse httpResponse = defaultClient.execute(httpGetRequest);
+		BufferedReader reader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent(), "UTF-8"));
+		StringBuilder buffer = new StringBuilder();
+		String line = null;
+		while( (line = reader.readLine()) != null) {
+			buffer.append(line);
+			buffer.append('\n');
+		}
+		if (httpResponse.getStatusLine().getStatusCode() == 200) {
+			return buffer.toString();
+		} else {
+			Log.i("SWISHER", "remote query failed: " + httpResponse.getStatusLine() + "\n" + buffer);
+			return null;
+		}
+	}
+
+
 	private void storeRemote(String card, JSONObject json) {
 		try {
 			DefaultHttpClient httpClient = new DefaultHttpClient();

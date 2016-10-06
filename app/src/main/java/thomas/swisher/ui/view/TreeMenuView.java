@@ -9,7 +9,7 @@ import android.widget.RelativeLayout;
 import trikita.anvil.Anvil;
 import trikita.anvil.RenderableAdapter;
 import com.google.common.base.Optional;
-import uk.co.thomasrynne.swisher.Utils;
+import thomas.swisher.utils.Utils;
 import thomas.swisher.shared.Core;
 import thomas.swisher.ui.model.UIMenuModel;
 import static thomas.swisher.ui.view.AnvilExtras.*;

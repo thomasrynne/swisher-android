@@ -1,4 +1,4 @@
-package uk.co.thomasrynne.swisher.core;
+package thomas.swisher.service;
 
 import android.app.Service;
 import android.content.Context;
@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import lombok.val;
 import thomas.swisher.ui.MainActivity;
-import uk.co.thomasrynne.swisher.Events;
+import thomas.swisher.ui.UIBackendEvents;
 
 public class ScreenOn {
     private EventBus eventBus = EventBus.getDefault();
@@ -58,7 +58,7 @@ public class ScreenOn {
 
     private Object subscriber = new Object() {
         @Subscribe(threadMode = ThreadMode.BACKGROUND)
-        public void onEventBackgroundThread(Events.ActivityReadyEvent event) {
+        public void onEventBackgroundThread(UIBackendEvents.ActivityReadyEvent event) {
             activityReady.set(event.isActivityReady); //todo use java.concurrent gate
         }
     };

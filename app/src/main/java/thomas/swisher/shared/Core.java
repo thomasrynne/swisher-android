@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import lombok.Value;
-import uk.co.thomasrynne.swisher.Utils;
+import thomas.swisher.utils.Utils;
 
 /**
  * Holds types shared between the GUI and service

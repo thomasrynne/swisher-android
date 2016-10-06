@@ -4,8 +4,6 @@ import android.view.KeyEvent;
 
 import org.greenrobot.eventbus.EventBus;
 
-import uk.co.thomasrynne.swisher.Events;
-
 /**
  * Captures key presses and sends a CardEvent when enough numeric keys are pressed
  */
@@ -23,7 +21,7 @@ public class OnKeyCardReader {
         if (keyCode == KeyEvent.KEYCODE_ENTER) {
             if (numbers.length() >= 7) { //??? && keyEvent.getAction() == KeyEvent.ACTION_DOWN
                 String cardNumber = numbers.toString().substring(numbers.length() - 7);
-                eventBus.post(new Events.CardWaveEvent(cardNumber));
+                eventBus.post(new UIBackendEvents.CardWaveEvent(cardNumber));
             }
             numbers = new StringBuilder();
             return true;

@@ -24,7 +24,7 @@ public class ControlView {
     private final CompoundButton.OnCheckedChangeListener keepPlayingCheckboxListener = new CompoundButton.OnCheckedChangeListener() {
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            controls.updatePlayNext(isChecked);
+            controls.updateAutoPlayNext(isChecked);
         }
     };
     public void view() {

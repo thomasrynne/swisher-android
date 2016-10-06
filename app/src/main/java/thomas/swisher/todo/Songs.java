@@ -1,4 +1,4 @@
-package uk.co.thomasrynne.swisher;
+package thomas.swisher.todo;
 
 import java.io.File;
 import java.util.HashMap;

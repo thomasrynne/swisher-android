@@ -6,7 +6,7 @@ import com.annimon.stream.function.Consumer;
 import com.google.common.base.Optional;
 
 import trikita.anvil.Anvil;
-import uk.co.thomasrynne.swisher.Utils;
+import thomas.swisher.utils.Utils;
 import thomas.swisher.shared.Core.*;
 
 import java.util.Collections;

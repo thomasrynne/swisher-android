@@ -1,4 +1,4 @@
-package thomas.swisher.localmedia;
+package thomas.swisher.service.localmedia;
 
 import android.media.AudioManager;
 import android.media.MediaPlayer;

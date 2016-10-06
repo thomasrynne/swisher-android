@@ -20,7 +20,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".SwisherService" />
+        <service android:name=".service.SwisherService" />
 
     </application>
 
@@ -34,7 +34,7 @@
 
     <!-- to start the service at boot (only really useful for web interface or serial card reader) -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <receiver android:name="uk.co.thomasrynne.swisher.BootCompletedIntentReceiver" android:enabled="true" android:exported="false">
+    <receiver android:name="thomas.swisher.service.BootCompletedIntentReceiver" android:enabled="true" android:exported="false">
         <intent-filter><action android:name="android.intent.action.BOOT_COMPLETED"/></intent-filter>
     </receiver>
 

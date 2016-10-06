@@ -9,9 +9,9 @@ import java.util.Collections;
 import java.util.List;
 
 import lombok.val;
-import uk.co.thomasrynne.swisher.Utils;
-import uk.co.thomasrynne.swisher.core.Player;
-import uk.co.thomasrynne.swisher.core.ScreenOn;
+import thomas.swisher.utils.Utils;
+import thomas.swisher.service.player.Player;
+import thomas.swisher.service.ScreenOn;
 
 /**
  */

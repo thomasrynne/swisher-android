@@ -4,14 +4,11 @@ import android.net.Uri;
 
 import com.google.common.base.Optional;
 
-import org.json.JSONObject;
-
 import java.util.List;
 
 import lombok.Value;
-import uk.co.thomasrynne.swisher.Utils;
-import uk.co.thomasrynne.swisher.core.Player;
-import uk.co.thomasrynne.swisher.core.TracksPlayer;
+import thomas.swisher.utils.Utils;
+import thomas.swisher.service.player.TracksPlayer;
 
 /**
  */

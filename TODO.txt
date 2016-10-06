@@ -21,8 +21,8 @@ Use java 8 lambdas DONE
  - update big button status with player changes DONE
  - write local music player DONE
  - --------------success--------------
- - play-next checkbox
- - tidy up code (delete & check remaining and move)
+ - play-next checkbox DONE
+ - tidy up code (delete & check remaining and move) DONE
  - move first label in track list to bottom of list entry
  - better menu-back button
  - cancel menu change

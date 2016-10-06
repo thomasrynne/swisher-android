@@ -1,4 +1,4 @@
-package uk.co.thomasrynne.swisher;
+package thomas.swisher.utils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,40 +22,6 @@ import android.util.Log;
 
 public class Utils {
     private Utils() {}
-	
-	public static final String YOUTUBE_DEVELOPER_KEY = "AIzaSyCLhKjwrLP6FtlQ8GYBcuelPGZ8hMwokYU";
-
-	public static <T> List<T> list(Stream<T> stream) {
-		ArrayList<T> list = new ArrayList<T>();
-		stream.forEach((item) -> list.add(item));
-		return list;
-	}
-	
-	public static String readURL(String url) throws IOException {
-		return readURL(url, null);
-	}
-	public static String readURL(String url, String token) throws IOException {
-		DefaultHttpClient defaultClient = new DefaultHttpClient();
-	    HttpGet httpGetRequest = new HttpGet(url);
-	    if (token != null) {
-	    	httpGetRequest.setHeader("Authorization", "Bearer " + token);
-	    }
-        Log.i("SWISHER", "Request " + token);
-	    HttpResponse httpResponse = defaultClient.execute(httpGetRequest);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent(), "UTF-8"));
-        StringBuilder buffer = new StringBuilder();
-        String line = null;
-        while( (line = reader.readLine()) != null) {
-            buffer.append(line);
-            buffer.append('\n');
-        }
-        if (httpResponse.getStatusLine().getStatusCode() == 200) {
-		    return buffer.toString();
-	    } else {
-	    	Log.i("SWISHER", "remote query failed: " + httpResponse.getStatusLine() + "\n" + buffer);
-	    	return null;
-	    }
-	}
 
 	@Value
 	public static class FlatJson {
