@@ -79,7 +79,7 @@ public class MediaStoreSource {
                                 name,
                                 Songs.imageForAlbum(albumId.get()),
                                 tracks,
-                                (playNow, listener) -> new LocalMediaPlayer(tracks, playNow, listener)
+                                (playNow, playNext, listener) -> new LocalMediaPlayer(tracks, playNow, playNext, listener)
                         ));
                     } else {
                         return Optional.absent();
@@ -107,7 +107,7 @@ public class MediaStoreSource {
                                 track.name(),
                                 track.image,
                                 singleTrack,
-                                (playNow, listener) -> new LocalMediaPlayer(singleTrack, playNow, listener)
+                                (playNow, playNext, listener) -> new LocalMediaPlayer(singleTrack, playNow, playNext, listener)
                         ));
                     } else {
                         return Optional.absent();
@@ -253,12 +253,13 @@ public class MediaStoreSource {
         private List<Track> tracks;
         private MediaHandler.PlayerListener listener;
         private int currentTrack = 0;
+        private boolean playNext;
         private AsyncMediaPlayer mediaPlayer = new AsyncMediaPlayer(
                 () -> {
                     if ((currentTrack + 1) < tracks.size()) {
                         currentTrack++;
-                        playCurrent(true);
-                        listener.onTrack(currentTrack);
+                        playCurrent(playNext);
+                        listener.onTrack(currentTrack, playNext);
                     } else {
                         listener.finished();
                     }
@@ -269,8 +270,9 @@ public class MediaStoreSource {
             mediaPlayer.play(tracks.get(currentTrack).path.getPath(), 0, playNow);
         }
 
-        LocalMediaPlayer(List<Track> tracks, boolean playNow, MediaHandler.PlayerListener listener) {
+        LocalMediaPlayer(List<Track> tracks, boolean playNow, boolean playNext, MediaHandler.PlayerListener listener) {
             this.tracks = tracks;
+            this.playNext = playNext;
             this.listener = listener;
             playCurrent(playNow);
         }
@@ -294,6 +296,11 @@ public class MediaStoreSource {
         @Override
         public void clear() {
             mediaPlayer.release();
+        }
+
+        @Override
+        public void playNext(boolean playNext) {
+            this.playNext = playNext;
         }
 
         @Override

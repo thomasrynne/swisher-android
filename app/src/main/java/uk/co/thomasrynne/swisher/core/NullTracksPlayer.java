@@ -20,6 +20,11 @@ public class NullTracksPlayer implements TracksPlayer {
     }
 
     @Override
+    public void playNext(boolean play) {
+
+    }
+
+    @Override
     public void jumpTo(int millis) {
 
     }

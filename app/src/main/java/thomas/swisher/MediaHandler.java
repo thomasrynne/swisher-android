@@ -21,11 +21,11 @@ public interface MediaHandler {
 
     public interface PlayerListener {
         public void finished();
-        public void  onTrack(int position);
+        public void  onTrack(int position, boolean isPlaying);
     }
 
     public interface ThePlayer {
-        public TracksPlayer create(boolean playNow, PlayerListener listener);
+        public TracksPlayer create(boolean playNow, boolean playNext, PlayerListener listener);
     }
 
     @Value

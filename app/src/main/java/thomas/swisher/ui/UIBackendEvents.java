@@ -26,6 +26,7 @@ public class UIBackendEvents {
     @Value
     public static class TracksLatest {
         public boolean isPlaying;
+        public boolean playNext;
         public final List<Core.PlaylistEntry> tracks;
     }
 

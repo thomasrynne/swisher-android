@@ -83,8 +83,6 @@ public class JsonEventHandler {
                 val action = json.get("action");
                 switch (action) {
                     case "stop":     player.stop();      return true;
-                    case "next":     player.next();      return true;
-                    case "previous": player.previous();  return true;
                     case "pause":    player.pausePlay(); return true;
                 }
             }

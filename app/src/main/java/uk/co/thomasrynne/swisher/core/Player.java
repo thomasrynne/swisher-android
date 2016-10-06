@@ -59,6 +59,7 @@ public class Player {
     private int currentGroup = -1;
     private int currentTrackInGroup = -1;
     private boolean isPlaying = false;
+    private boolean playNext = true;
     private TracksPlayer currentPlayer = new NullTracksPlayer();
 
     private class ListenerForPlayer implements MediaHandler.PlayerListener {
@@ -70,15 +71,16 @@ public class Player {
 
         @Override
         public void finished() {
-            if (currentPlayerInstance == instance) {
+            if (Player.this.currentPlayerInstance == instance) {
                 toNext();
             }
         }
 
         @Override
-        public void onTrack(int position) {
-            if (currentPlayerInstance == instance) {
-                currentTrackInGroup = position;
+        public void onTrack(int position, boolean isPlaying) {
+            if (Player.this.currentPlayerInstance == instance) {
+                Player.this.currentTrackInGroup = position;
+                Player.this.isPlaying = isPlaying;
                 broadcastTrackList();
             }
         }
@@ -89,10 +91,10 @@ public class Player {
             currentTrackInGroup = 0;
             isPlaying = false;
             onCurrentPlayer(TracksPlayer::cueBeginning);
-        } else if ((currentGroup+1) < tracksList.size()) { //there is a next group, play it
+        } else if ((currentGroup+1) < tracksList.size()) { //there is a next group, play/cue it
             currentGroup++;
             currentTrackInGroup=0;
-            initPlayer(tracksList.get(currentGroup).entry.player, true);
+            initPlayer(tracksList.get(currentGroup).entry.player, playNext);
         } else { //we got to the end, cueBeginning the start group
             onCurrentPlayer(TracksPlayer::clear);
             currentTrackInGroup = 0;
@@ -105,7 +107,7 @@ public class Player {
     private void initPlayer(MediaHandler.ThePlayer player, boolean playNow) {
         onCurrentPlayer(TracksPlayer::clear);
         currentPlayerInstance = sequence.incrementAndGet();
-        currentPlayer = player.create(playNow, new ListenerForPlayer(currentPlayerInstance));
+        currentPlayer = player.create(playNow, playNext, new ListenerForPlayer(currentPlayerInstance));
 
     }
 
@@ -179,6 +181,12 @@ public class Player {
         broadcastTrackList();
     }
 
+    public void updatePlayNext(boolean playNext) {
+        this.playNext = playNext;
+        onCurrentPlayer(player -> player.playNext(this.playNext));
+        broadcastTrackList();
+    }
+
     public void playTrack(int group, int track) {
         if (currentGroup != group) {
             initPlayer(tracksList.get(group).entry.player, false);
@@ -221,6 +229,6 @@ public class Player {
             group++;
         }
         Log.i("X", "Broadcast tracklist " + trackGroups);
-        eventBus.postSticky(new UIBackendEvents.TracksLatest(isPlaying, trackGroups));
+        eventBus.postSticky(new UIBackendEvents.TracksLatest(isPlaying, playNext, trackGroups));
     }
 }

@@ -28,6 +28,7 @@ public class UIModel {
         private boolean isFullScreen = false;
         private boolean showMenu = false;
         private boolean isPlaying;
+        private boolean playNext;
 
         public Core(Backend backend) {
             this.backend = backend;
@@ -99,6 +100,10 @@ public class UIModel {
             } else {
                 return Optional.absent();
             }
+        }
+
+        public boolean isPlayNext() {
+            return playNext;
         }
     }
 }

@@ -19,6 +19,10 @@ public class UIControls {
             return uiRoot.isPlaying();
         }
 
+        public boolean isPlayNext() {
+            return uiRoot.isPlayNext();
+        }
+
         public void pausePlay() {
             uiRoot.pausePlay();
         }
@@ -39,6 +43,10 @@ public class UIControls {
 
         public void fullScreen() {
             uiRoot.fullScreen();
+        }
+
+        public void updatePlayNext(Object isChecked) {
+
         }
     }
 }

@@ -7,6 +7,7 @@ public interface TracksPlayer {
 //    void seekTo(int millis);
 //    void jumpTo(int millis);
     void clear();
+    void playNext(boolean play);
 
     void jumpTo(int track);
     //public void progress:PlayerProgress = UnknownPlayerProgress
