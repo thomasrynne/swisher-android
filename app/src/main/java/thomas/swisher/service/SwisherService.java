@@ -36,7 +36,6 @@ public class SwisherService extends Service {
         @Subscribe(threadMode = ThreadMode.ASYNC)
         public void onMenuRequest(UIBackendEvents.RequestMenuEvent event) {
             try {
-                Log.i("X", "Menu requested " + event.menuPath);
                 val menuItems = menuTree.menuFor(event.menuPath);
                 eventBus.post(new UIBackendEvents.MenuResponse(event.menuPath, Optional.of(menuItems)));
             } catch (Exception e) {
@@ -107,10 +106,7 @@ public class SwisherService extends Service {
     };
 
     public void onCreate() {
-        Log.i("S", "oncreate service");
         Songs.init(getContentResolver());
-//        MediaStore mediaStore = new MediaStore(getBaseContext());
-//        menu = new Controls(getBaseContext(), mediaStore);
         val mediaStore = new MediaStoreSource(getBaseContext());
         menuTree = new MainMenuTree(eventBus,
             mediaStore.albumMenu(),
@@ -119,10 +115,6 @@ public class SwisherService extends Service {
         jsonEventHandler = new JsonEventHandler(this, player, new MediaHandler[] {
             mediaStore.albumHandler(),
             mediaStore.trackHandler()
-//                menu.mediaStoreSource().handler(),
-//                RadioStations.handler(),
-//                new YouTubeSource(getBaseContext()).handler(),
-//                new Podcasts(getBaseContext()).handler()
         });
 		cardStore = new CardStore(this);
         this.cardManager = new CardManager(eventBus, cardStore, jsonEventHandler.jsonHandler);
@@ -147,5 +139,6 @@ public class SwisherService extends Service {
 	public void onDestroy() {
 		super.onDestroy();
         eventBus.unregister(listener);
+        player.destroy();
 	}
 }

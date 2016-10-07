@@ -5,17 +5,27 @@ import org.json.JSONObject;
 
 import android.util.Log;
 
+import com.google.common.base.Optional;
+
 import thomas.swisher.JsonEventHandler;
 import thomas.swisher.todo.CardStore;
 import thomas.swisher.ui.UIBackendEvents;
 import thomas.swisher.utils.Utils;
 
+/**
+ * Decides what to do when a card is read.
+ *
+ * This can be put into record mode to record a new card.
+ *
+ * All interation with this class should be from the EventBus Background thread
+ */
 public class CardManager {
 
     private final EventBus eventBus;
     private final CardStore store;
     private final JsonEventHandler.Handler jsonEventHandler;
-    private Utils.FlatJson recordJSON = null;
+
+    private Optional<Utils.FlatJson> recordJSON = Optional.absent();
 
     public CardManager(EventBus eventBus, CardStore store, JsonEventHandler.Handler jsonEventHandler) {
         this.eventBus = eventBus;
@@ -24,17 +34,13 @@ public class CardManager {
     }
 
     public void record(String name, Utils.FlatJson json) {
-        synchronized (this) {
-            recordJSON = json;
-        }
+        recordJSON = Optional.of(json);
         eventBus.post(new UIBackendEvents.RecordMode(name));
-        Log.i("SWISHER", "in record mode " + name);
+        Log.i("SWISHER", "in record mode for " + name);
     }
 
     public void cancelRecord() {
-        synchronized (this) {
-            recordJSON = null;
-        }
+        recordJSON = Optional.absent();
         eventBus.post(new UIBackendEvents.RecordCompleteEvent());
         Log.i("SWISHER", "record mode cancelled");
     }
@@ -44,23 +50,21 @@ public class CardManager {
     }
 
     public void handleCard(String card) {
-        synchronized (this) {
-            if (recordJSON != null) {
-                store.store(card, recordJSON.json);
-                toastMessage("Recorded");
-                recordJSON = null;
-                eventBus.post(new UIBackendEvents.RecordCompleteEvent());
-                Log.i("SWISHER", "recorded " + card);
-            } else {
-                JSONObject entry = store.read(card);
-                if (entry != null) {
-                    boolean handled = jsonEventHandler.handle(new Utils.FlatJson(entry));
-                    if (!handled) {
-                        toastMessage("Can not play card: " + card);
-                    }
-                } else {
-                    toastMessage("Unknown card: " + card);
+        if (recordJSON.isPresent()) {
+            store.store(card, recordJSON.get().json);
+            toastMessage("Recorded");
+            recordJSON = Optional.absent();
+            eventBus.post(new UIBackendEvents.RecordCompleteEvent());
+            Log.i("SWISHER", "recorded: " + card);
+        } else {
+            Optional<JSONObject> entry = store.read(card);
+            if (entry.isPresent()) {
+                boolean handled = jsonEventHandler.handle(new Utils.FlatJson(entry.get()));
+                if (!handled) {
+                    toastMessage("Can not play card: " + card);
                 }
+            } else {
+                toastMessage("Unknown card: " + card);
             }
         }
     }

@@ -7,6 +7,8 @@ import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -27,6 +29,8 @@ import thomas.swisher.utils.Utils;
  *  -manages the play/paused state
  *  -broadcasts updates to playlist + pause/play status
  *  -manages the current 'active' player
+ *
+ *  All interation with this class should be from the EventBus Background thread
  */
 public class Player {
 
@@ -52,6 +56,24 @@ public class Player {
 
     private EventBus eventBus = EventBus.getDefault();
     private final AtomicInteger sequence = new AtomicInteger();
+
+    private final Object listener = new Object() {
+        @Subscribe(threadMode = ThreadMode.BACKGROUND)
+        public void onEvent(TracksPlayerFinishedEvent event) {
+            if (Player.this.currentPlayerInstance == event.instance) {
+                toNext();
+            }
+        }
+        @Subscribe(threadMode = ThreadMode.BACKGROUND)
+        public void onEvent(TracksPlayerOnTrackEvent event) {
+            if (Player.this.currentPlayerInstance == event.instance) {
+                Player.this.currentTrackInGroup = event.track;
+                Player.this.isPlaying = event.isPlaying;
+                broadcastTrackList();
+            }
+        }
+    };
+
     private ArrayList<PlaylistEntry> tracksList = new ArrayList<>();
     private int currentPlayerInstance = -1;
     private int currentGroup = -1;
@@ -60,28 +82,40 @@ public class Player {
     private boolean playNext = true;
     private TracksPlayer currentPlayer = new NullTracksPlayer();
 
+    @Value
+    private static class TracksPlayerFinishedEvent {
+        public final int instance;
+    }
+
+    @Value
+    private static class TracksPlayerOnTrackEvent {
+        public final int instance;
+        public final int track;
+        public boolean isPlaying;
+    }
+
+    /**
+     * TrackPlayers interact with the Player using this class
+     * The Player is single threaded so these methods post events
+     * to be consumed on the EventBus background thread
+     */
     private class ListenerForPlayer implements MediaHandler.PlayerListener {
         private int instance;
-
         ListenerForPlayer(int instance) {
             this.instance = instance;
         }
-
         @Override
         public void finished() {
-            if (Player.this.currentPlayerInstance == instance) {
-                toNext();
-            }
+            eventBus.post(new TracksPlayerFinishedEvent(instance));
         }
-
         @Override
-        public void onTrack(int position, boolean isPlaying) {
-            if (Player.this.currentPlayerInstance == instance) {
-                Player.this.currentTrackInGroup = position;
-                Player.this.isPlaying = isPlaying;
-                broadcastTrackList();
-            }
+        public void onTrack(int track, boolean isPlaying) {
+            eventBus.post(new TracksPlayerOnTrackEvent(instance, track, isPlaying));
         }
+    }
+
+    public Player() {
+        eventBus.register(listener);
     }
 
     private void toNext() {
@@ -93,7 +127,7 @@ public class Player {
             currentGroup++;
             currentTrackInGroup=0;
             initPlayer(tracksList.get(currentGroup).entry.player, playNext);
-        } else { //we got to the end, cueBeginning the start group
+        } else { //we got to the end, create and cue the start group
             currentPlayer.clear();
             currentTrackInGroup = 0;
             currentGroup = 0;
@@ -106,7 +140,6 @@ public class Player {
         currentPlayer.clear();
         currentPlayerInstance = sequence.incrementAndGet();
         currentPlayer = player.create(playNow, playNext, new ListenerForPlayer(currentPlayerInstance));
-
     }
 
     public void play(List<Player.PlaylistEntry> tracks) {
@@ -223,7 +256,11 @@ public class Player {
             trackGroups.add(new Core.PlaylistEntry(entry.name(), entry.thumbnail(), tracks));
             group++;
         }
-        Log.i("X", "Broadcast tracklist " + trackGroups);
         eventBus.postSticky(new UIBackendEvents.TracksLatest(isPlaying, playNext, trackGroups));
+    }
+
+    public void destroy() {
+        nullOutPlayer();
+        eventBus.unregister(listener);
     }
 }

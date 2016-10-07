@@ -33,6 +33,8 @@ Use java 8 lambdas DONE
  - collapse group when menu is shown
  - playlist reordering
 
+ - card lookup and json lookup is on background thread. Is that OK?
+
  - add youtube
 
 

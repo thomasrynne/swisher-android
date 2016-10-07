@@ -25,8 +25,14 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.google.common.base.Optional;
+
 import thomas.swisher.ui.UIBackendEvents;
 
+/**
+ * Consider using a library for the http and db calls
+ * This is currently called from the background thread but performs slowish IO
+ */
 
 class CardStoreDbHelper extends SQLiteOpenHelper {
     public CardStoreDbHelper(Context context) {
@@ -49,15 +55,15 @@ public class CardStore {
 		db = new CardStoreDbHelper(context);
 	}
 	
-	public JSONObject read(String card) {
+	public Optional<JSONObject> read(String card) {
 		JSONObject value = readLocal(card);
 		if (value == null) {
             eventBus.post(new UIBackendEvents.ToastEvent("Looking up card..."));
 			value = readRemote(card);
 			if (value != null) { store(card, value); }
-			return value;
+			return Optional.fromNullable(value);
 		} else {
-			return value;
+			return Optional.fromNullable(value);
 		}
 	}
 	
