@@ -12,7 +12,7 @@ import com.google.common.base.Optional;
 import thomas.swisher.utils.Utils;
 import thomas.swisher.shared.Core;
 import thomas.swisher.ui.model.UIMenuModel;
-import static thomas.swisher.ui.view.AnvilExtras.*;
+import static thomas.swisher.ui.view.AnvilExtras.ForGlide.*;
 
 import static trikita.anvil.DSL.*;
 

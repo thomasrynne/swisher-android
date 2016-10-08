@@ -29,6 +29,11 @@ public class Backend {
 
     public void start() {
         eventBus.register(listener);
+        UIBackendEvents.TracksLatest tracks = eventBus.getStickyEvent(UIBackendEvents.TracksLatest.class);
+        if (tracks != null) {
+            core.updateIsPlaying(tracks.isPlaying);
+            core.tracks().latest(tracks.tracks);
+        }
     }
 
     public void stop() {
@@ -78,5 +83,13 @@ public class Backend {
 
     public void updateAutoPlayNext(boolean playNext) {
         eventBus.post(new UIBackendEvents.AutoPlayNextEvent(playNext));
+    }
+
+    public void removePlaylistItem(int position) {
+        eventBus.post(new UIBackendEvents.RemoveTrackEvent(position));
+    }
+
+    public void swapPlaylistItems(int a, int b) {
+        eventBus.post(new UIBackendEvents.SwapTracksEvent(a, b));
     }
 }

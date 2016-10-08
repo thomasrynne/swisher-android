@@ -16,7 +16,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import lombok.val;
 import thomas.swisher.service.SwisherService;
-import static thomas.swisher.ui.view.AnvilExtras.*;
+import static thomas.swisher.ui.view.AnvilExtras.ForGlide.*;
 import trikita.anvil.Anvil;
 import thomas.swisher.ui.view.ControlView;
 import thomas.swisher.ui.model.Backend;

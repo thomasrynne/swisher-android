@@ -1,28 +1,27 @@
 package thomas.swisher.ui.view;
 
-import android.util.Log;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.widget.LinearLayout;
 
 import lombok.val;
 import thomas.swisher.R;
-import trikita.anvil.Anvil;
-import trikita.anvil.BaseDSL;
 import thomas.swisher.ui.model.UITracks;
 
 import com.google.common.base.Optional;
-import com.nhaarman.listviewanimations.itemmanipulation.DynamicListView;
+import com.nhaarman.listviewanimations.util.Swappable;
 
 import static trikita.anvil.BaseDSL.*;
 import static trikita.anvil.DSL.*;
 import static trikita.anvil.DSL.visibility;
-import static thomas.swisher.ui.view.AnvilExtras.*;
+import static thomas.swisher.ui.view.AnvilExtras.ForGlide.*;
+import static thomas.swisher.ui.view.AnvilExtras.ForDynamicListView.*;
 
 /**
+ * Defines the UI layout and UI interactions for the tracks area
  */
 public class TracksView {
 
+    private static final int MainTextId = 1;
     private UITracks.Model model;
 
     public TracksView(UITracks.Model model) {
@@ -32,9 +31,20 @@ public class TracksView {
         });
     }
 
-    private AlwaysRenderedRenderableAdapter adapter = new AlwaysRenderedRenderableAdapter() {
+    private AlwaysRenderedRenderableAdapter adapter = new TracksAdapter();
+    private class TracksAdapter extends AlwaysRenderedRenderableAdapter implements Swappable {
 
         private Optional<Integer> touchedTrack = Optional.absent();
+
+        @Override
+        public void swapItems(int a, int b) {
+            model.swap(a, b);
+        }
+
+        @Override
+        public boolean hasStableIds() {
+            return true;
+        }
 
         @Override
         public void view(int index) {
@@ -54,6 +64,7 @@ public class TracksView {
                         size(MATCH, WRAP);
 
                         textView(() -> {
+                            id(MainTextId);
                             size(MATCH, WRAP);
                             textSize(18);
                             layoutGravity(TOP);
@@ -108,16 +119,32 @@ public class TracksView {
         public Object getItem(int position) {
             return model.trackAt(position);
         }
+
+        @Override
+        public long getItemId(int position) {
+            val track = model.trackAt(position);
+            if (track.isPresent()) {
+                return track.get().itemID;
+            } else {
+                return -1L;
+            }
+        }
     };
 
     public void view() {
         dynamicListView(() -> {
-           size(FILL, FILL);
-           adapter(adapter);
+            size(FILL, FILL);
+            adapter(adapter);
+            if (model.enableDragAndDrop()) {
+                enableDragAndDropOn(Optional.of(MainTextId));
+            } else {
+                enableDragAndDropOn(Optional.absent());
+            }
+            enableSwipeToDismiss( (view, reverseSortedPositions) -> {
+                for (int position : reverseSortedPositions) {
+                    model.remove(position);
+                }
+            });
         });
-    }
-
-    private void dynamicListView(Anvil.Renderable renderable) {
-        BaseDSL.v(DynamicListView.class, renderable);
     }
 }

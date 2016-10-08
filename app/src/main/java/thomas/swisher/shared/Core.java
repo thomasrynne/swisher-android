@@ -18,6 +18,7 @@ public class Core {
 
     @Value
     public static class PlaylistEntry {
+        public final long id;
         public final String name;
         public final Optional<Uri> thumbnail;
         public final List<Track> tracks;

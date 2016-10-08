@@ -30,7 +30,7 @@ import thomas.swisher.utils.Utils;
  *  -broadcasts updates to playlist + pause/play status
  *  -manages the current 'active' player
  *
- *  All interation with this class should be from the EventBus Background thread
+ *  All interaction with this class should be from the EventBus Background thread
  */
 public class Player {
 
@@ -125,7 +125,7 @@ public class Player {
             currentPlayer.cueBeginning();
         } else if ((currentGroup+1) < tracksList.size()) { //there is a next group, play/cue it
             currentGroup++;
-            currentTrackInGroup=0;
+            currentTrackInGroup = 0;
             initPlayer(tracksList.get(currentGroup).entry.player, playNext);
         } else { //we got to the end, create and cue the start group
             currentPlayer.clear();
@@ -158,10 +158,11 @@ public class Player {
 
     public void add(Player.PlaylistEntry tracks) {
         if (tracksList.isEmpty()) {
-            currentGroup = 1;
-            currentTrackInGroup = 1;
+            currentGroup = 0;
+            currentTrackInGroup = 0;
             initPlayer(tracks.entry.player, false);
         }
+        Log.i("X", "add " + currentGroup);
         tracksList.add(tracks);
         broadcastTrackList();
     }
@@ -253,7 +254,7 @@ public class Player {
                 tracks.add(new Core.Track(track.name(), track.image(), group==currentGroup && trackInGroup==currentTrackInGroup));
                 trackInGroup++;
             }
-            trackGroups.add(new Core.PlaylistEntry(entry.name(), entry.thumbnail(), tracks));
+            trackGroups.add(new Core.PlaylistEntry(entry.id, entry.name(), entry.thumbnail(), tracks));
             group++;
         }
         eventBus.postSticky(new UIBackendEvents.TracksLatest(isPlaying, playNext, trackGroups));

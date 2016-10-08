@@ -51,6 +51,7 @@ public class UIModel {
 
         public void toggleShowMenu() {
             showMenu = !showMenu;
+            tracks().rebuild();
         }
 
         public void fullScreen() {
