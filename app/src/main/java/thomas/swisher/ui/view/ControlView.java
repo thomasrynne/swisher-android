@@ -1,6 +1,5 @@
 package thomas.swisher.ui.view;
 
-import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.CompoundButton;
 
@@ -33,25 +32,29 @@ public class ControlView {
             gravity(TOP);
             button(() -> {
                 centerHorizontal();
-                size(150, 150);
+                size(dip(200), dip(200));
                 textSize(40);
-                gravity(CENTER);
+                layoutGravity(CENTER);
                 backgroundResource(buttonTouched ? R.drawable.big_round_button_touched : R.drawable.big_round_button_plain);
-                setupBitButton();
+                setupBigButton();
+                margin(dip(20), dip(20), dip(20), dip(20));
             });
 
             checkBox(() -> {
+                size(dip(50), dip(50));
+                text("Play next");
                 checked(controls.isPlayNext());
                 onCheckedChange(keepPlayingCheckboxListener);
+                layoutGravity(LEFT);
             });
 
             imageButton(() -> {
                 centerHorizontal();
-                size(40, 40);
-                margin(0, 10, 0, 0);
+                size(dip(80), dip(80));
+                margin(0, dip(10), 0, 0);
                 alignParentRight();
                 alignParentTop();
-                gravity(RIGHT);
+                layoutGravity(RIGHT);
                 textSize(12);
                 imageResource(R.drawable.lines);
                 onClick((v) -> controls.toggleMenu());
@@ -59,7 +62,7 @@ public class ControlView {
         });
     }
 
-    private void setupBitButton() {
+    private void setupBigButton() {
         switch (controls.buttonState()) {
             case PAUSE: text("||"); break;
             case PLAY: text("\u25B6"); break;
