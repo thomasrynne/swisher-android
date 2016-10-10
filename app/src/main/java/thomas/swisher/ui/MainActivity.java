@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Window;
@@ -47,54 +48,51 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private Anvil.Renderable mainView() {
-        return () -> {
-            linearLayout(() -> {
-                size(MATCH, MATCH);
-                padding(0,0,0,0);
-                padding(15);
-                orientation(LinearLayout.HORIZONTAL);
+        return new Anvil.Renderable() {
+            @Override
+            public void view() {
+                linearLayout(() -> {
+                    size(MATCH, MATCH);
+                    padding(0,0,0,0);
+                    padding(15);
+                    orientation(LinearLayout.HORIZONTAL);
 
-                frameLayout(() -> { //---------------------------------[Tracks]
-                    size(FILL, FILL);
-                    weight(1);
-                    gravity(Gravity.TOP);
-                    tracksView.view();
-                });
-
-                linearLayout(() -> { //--------------------------------[Controls]
-                    weight(1);
-                    gravity(Gravity.RIGHT);
-                    orientation(LinearLayout.VERTICAL);
-                    height(FILL);
-
-                    frameLayout(() -> { //-----------------------------[Buttons]
+                    frameLayout(() -> { //---------------------------------[Tracks]
+                        size(FILL, FILL);
                         weight(1);
                         gravity(Gravity.TOP);
-                        controlView.view();
+                        tracksView.view();
                     });
 
-                    linearLayout(() -> { //----------------------------[Main Image]
+                    linearLayout(() -> { //--------------------------------[Controls]
                         weight(1);
-                        gravity(Gravity.BOTTOM);
+                        orientation(LinearLayout.VERTICAL);
+                        height(FILL);
 
-                        imageView(() -> {
+                        linearLayout(() -> { //-----------------------------[Buttons]
+                            height(WRAP);
+                            controlView.view();
+                        });
+
+                        linearLayout(() -> { //----------------------------[Main Image]
+                            height(0);
                             weight(1);
-                            centerInParent();
-                            //padding(dip(15));
-                            gravity(Gravity.CENTER);
-                            glideURI(coreUI.bigImage());
+
+                            imageView(() -> {
+                                layoutGravity(Gravity.CENTER);
+                                glideURI(coreUI.bigImage());
+                            });
                         });
                     });
-                });
 
-                frameLayout(() -> { //---------------------------------[Menu]
-                    visibility(coreUI.showMenu());
-                    treeMenuView.view();
-                    gravity(Gravity.TOP);
-                    size(FILL, FILL);
-                    weight(1);
+                    frameLayout(() -> { //---------------------------------[Menu]
+                        weight(1);
+                        visibility(coreUI.showMenu());
+                        treeMenuView.view();
+                        size(FILL, FILL);
+                    });
                 });
-            });
+            };
         };
     }
 
