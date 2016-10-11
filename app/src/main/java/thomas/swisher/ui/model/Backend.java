@@ -1,7 +1,5 @@
 package thomas.swisher.ui.model;
 
-import android.util.Log;
-
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -17,13 +15,13 @@ import thomas.swisher.ui.UIBackendEvents;
 public class Backend {
 
     private final EventBus eventBus;
-    private final UIModel.Core core = new UIModel.Core(this);
+    private final UIModel.CoreModel core = new UIModel.CoreModel(this);
 
     public Backend(EventBus eventBus) {
         this.eventBus = eventBus;
     }
 
-    public UIModel.Core coreUI() {
+    public UIModel.CoreModel coreUI() {
         return core;
     }
 
@@ -31,9 +29,12 @@ public class Backend {
         eventBus.register(listener);
         UIBackendEvents.TracksLatest tracks = eventBus.getStickyEvent(UIBackendEvents.TracksLatest.class);
         if (tracks != null) {
-            core.updateIsPlaying(tracks.isPlaying);
-            core.tracks().latest(tracks.tracks);
+            update(tracks);
         }
+    }
+
+    private void update(UIBackendEvents.TracksLatest tracks) {
+        core.update(tracks);
     }
 
     public void stop() {
@@ -47,8 +48,7 @@ public class Backend {
         }
         @Subscribe(threadMode = ThreadMode.MAIN)
         public void latestTracks(UIBackendEvents.TracksLatest tracks) {
-            core.updateIsPlaying(tracks.isPlaying);
-            core.tracks().latest(tracks.tracks);
+            update(tracks);
             Anvil.render();
         }
     };
@@ -81,7 +81,7 @@ public class Backend {
         eventBus.post(new UIBackendEvents.PlayTrackByIndexEvent(group, track));
     }
 
-    public void updateAutoPlayNext(boolean playNext) {
+    public void sendAutoPlayNext(boolean playNext) {
         eventBus.post(new UIBackendEvents.AutoPlayNextEvent(playNext));
     }
 
@@ -91,5 +91,9 @@ public class Backend {
 
     public void swapPlaylistItems(int a, int b) {
         eventBus.post(new UIBackendEvents.SwapTracksEvent(a, b));
+    }
+
+    public void seekTo(int toMillis) {
+        eventBus.post(new UIBackendEvents.SeekToEvent(toMillis));
     }
 }

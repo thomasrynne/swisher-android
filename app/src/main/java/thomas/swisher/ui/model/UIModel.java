@@ -1,10 +1,14 @@
 package thomas.swisher.ui.model;
 
 import android.net.Uri;
+import android.os.Handler;
 
 import com.google.common.base.Optional;
 
+import thomas.swisher.shared.Core;
+import thomas.swisher.ui.UIBackendEvents;
 import thomas.swisher.utils.Utils;
+import trikita.anvil.Anvil;
 
 /**
  * The core ui class which the layouts wrap.
@@ -18,18 +22,23 @@ public class UIModel {
 
     private UIModel() {}
 
-    public static class Core {
+    public static class CoreModel {
         private final UIMenuModel.Core menu = new UIMenuModel.Core(this);
         private final UIControls.Core controls = new UIControls.Core(this);
         private final UITracks.Model tracks = new UITracks.Model(this);
+        private final Handler handler = new Handler();
         private final Backend backend;
 
         private boolean isFullScreen = false;
         private boolean showMenu = false;
         private boolean isPlaying;
         private boolean playNext;
+        private Core.PlayerProgress progress = Core.PlayerProgress.Null;
 
-        public Core(Backend backend) {
+        private long lastRealProgressUpdateTime = 0;
+        private long currentState = 0;
+
+        public CoreModel(Backend backend) {
             this.backend = backend;
         }
 
@@ -45,8 +54,36 @@ public class UIModel {
             return tracks;
         }
 
-        public void updateIsPlaying(boolean isPlaying) {
-            this.isPlaying = isPlaying;
+        private class UpdateProgress implements Runnable {
+            private final long state;
+            UpdateProgress(long state) {
+                this.state = state;
+            }
+            @Override
+            public void run() {
+                if (currentState == state) {
+                    int timeSinceLastRealUpdate = (int) (System.currentTimeMillis() - lastRealProgressUpdateTime);
+                    progress = progress.withProgressMillis(progress.progressMillis + timeSinceLastRealUpdate);
+                    Anvil.render();
+                    triggerProgressUpdate();
+                }
+            }
+        };
+
+        private void triggerProgressUpdate() {
+            handler.postDelayed(new UpdateProgress(currentState), 300);
+        }
+
+        public void update(UIBackendEvents.TracksLatest tracks) {
+            this.isPlaying = tracks.isPlaying;
+            this.playNext = tracks.playNext;
+            this.progress = tracks.progress;
+            this.tracks.latest(tracks.tracks);
+            currentState++;
+            if (isPlaying) {
+                this.lastRealProgressUpdateTime = System.currentTimeMillis();
+                triggerProgressUpdate();
+            }
         }
 
         public void toggleShowMenu() {
@@ -106,8 +143,16 @@ public class UIModel {
             return playNext;
         }
 
-        public void updateAutoPlayNext(boolean playNext) {
-            backend.updateAutoPlayNext(playNext);
+        public void sendAutoPlayNext(boolean playNext) {
+            backend.sendAutoPlayNext(playNext);
+        }
+
+        public void seekTo(int toMillis) {
+            backend.seekTo(toMillis);
+        }
+
+        public thomas.swisher.shared.Core.PlayerProgress progress() {
+            return progress;
         }
     }
 }

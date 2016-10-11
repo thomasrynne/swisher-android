@@ -49,7 +49,7 @@ public class SwisherService extends Service {
         }
         @Subscribe(threadMode = ThreadMode.BACKGROUND)
         public void onEventBackgroundThread(UIBackendEvents.RecordPlayListEvent event) {
-            cardManager.record("Playlist", jsonEventHandler.playListJson());
+            cardManager.record("Playlist", player.playlistJson());
         }
         @Subscribe(threadMode = ThreadMode.BACKGROUND)
         public void onEventBackgroundThread(UIBackendEvents.RecordCardEvent event) {
@@ -74,6 +74,10 @@ public class SwisherService extends Service {
         @Subscribe(threadMode = ThreadMode.BACKGROUND)
         public void onEventBackgroundThread(UIBackendEvents.PausePlayEvent event) {
             player.pausePlay();
+        }
+        @Subscribe(threadMode = ThreadMode.BACKGROUND)
+        public void onEventBackgroundThread(UIBackendEvents.SeekToEvent event) {
+            player.seekTo(event.toMillis);
         }
         @Subscribe(threadMode = ThreadMode.BACKGROUND)
         public void onEventBackgroundThread(UIBackendEvents.CancelRecordEvent event) {
@@ -103,22 +107,28 @@ public class SwisherService extends Service {
         public void onEventMainThread(UIBackendEvents.ToastEvent event) {
             Toast.makeText(getApplicationContext(), event.message, Toast.LENGTH_LONG).show();
         }
+        @Subscribe(threadMode = ThreadMode.BACKGROUND)
+        public void onEventBackgroundThread(UIBackendEvents.ActivityReadyEvent event) {
+            if (event.isActivityReady) {
+                player.sendStatusUpdate();
+            }
+        }
     };
 
     public void onCreate() {
         Songs.init(getContentResolver());
         val mediaStore = new MediaStoreSource(getBaseContext());
-        menuTree = new MainMenuTree(eventBus,
+        this.menuTree = new MainMenuTree(eventBus,
             mediaStore.albumMenu(),
             mediaStore.tracksMenu()
         );
-        jsonEventHandler = new JsonEventHandler(this, player, new MediaHandler[] {
+        this.jsonEventHandler = new JsonEventHandler(this, player, new MediaHandler[] {
             mediaStore.albumHandler(),
             mediaStore.trackHandler()
         });
-		cardStore = new CardStore(this);
+		this.cardStore = new CardStore(this);
         this.cardManager = new CardManager(eventBus, cardStore, jsonEventHandler.jsonHandler);
-        eventBus.register(listener);
+        this.eventBus.register(listener);
 
         UIBackendEvents.RequestMenuEvent requestMenuEvent = eventBus.getStickyEvent(UIBackendEvents.RequestMenuEvent.class);
         if (requestMenuEvent != null) { //resend if there was already a request

@@ -2,8 +2,11 @@ package thomas.swisher.ui.view;
 
 import android.view.MotionEvent;
 import android.widget.CompoundButton;
+import android.widget.SeekBar;
 
+import lombok.val;
 import thomas.swisher.R;
+import thomas.swisher.shared.Core;
 import thomas.swisher.ui.model.UIControls;
 
 import static trikita.anvil.BaseDSL.*;
@@ -23,9 +26,20 @@ public class ControlView {
     private final CompoundButton.OnCheckedChangeListener keepPlayingCheckboxListener = new CompoundButton.OnCheckedChangeListener() {
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            controls.updateAutoPlayNext(isChecked);
+            controls.sendAutoPlayNext(isChecked);
         }
     };
+
+    private final SeekBar.OnSeekBarChangeListener seekListener = new SeekBar.OnSeekBarChangeListener() {
+        public void onProgressChanged(SeekBar seekBar, int to, boolean user) {
+            if (user) {
+                controls.seekTo(to);
+            }
+        }
+        public void onStartTrackingTouch(SeekBar seekBar) { } // see what happens when slowly updating
+        public void onStopTrackingTouch(SeekBar seekBar) { }  // seek. does incremental update make position jump?
+    };
+
     public void view() {
         relativeLayout(() -> {
             size(FILL, FILL);
@@ -58,6 +72,14 @@ public class ControlView {
                 textSize(12);
                 imageResource(R.drawable.lines);
                 onClick((v) -> controls.toggleMenu());
+            });
+
+            seekBar(() -> {
+                Core.PlayerProgress progress = controls.progress();
+                visibility(progress.enabled);
+                max(progress.totalMillis);
+                progress(progress.progressMillis);
+                onSeekBarChange(seekListener);
             });
         });
     }

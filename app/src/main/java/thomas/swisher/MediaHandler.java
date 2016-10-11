@@ -7,6 +7,7 @@ import com.google.common.base.Optional;
 import java.util.List;
 
 import lombok.Value;
+import thomas.swisher.shared.Core;
 import thomas.swisher.utils.Utils;
 import thomas.swisher.service.player.TracksPlayer;
 
@@ -18,7 +19,7 @@ public interface MediaHandler {
 
     public interface PlayerListener {
         public void finished();
-        public void  onTrack(int position, boolean isPlaying);
+        public void  onTrack(int position, boolean isPlaying, Core.PlayerProgress progress);
     }
 
     public interface ThePlayer {

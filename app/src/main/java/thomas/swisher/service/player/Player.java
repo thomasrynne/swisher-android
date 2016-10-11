@@ -69,12 +69,14 @@ public class Player {
             if (Player.this.currentPlayerInstance == event.instance) {
                 Player.this.currentTrackInGroup = event.track;
                 Player.this.isPlaying = event.isPlaying;
+                Player.this.progress = event.progress;
                 broadcastTrackList();
             }
         }
     };
 
     private ArrayList<PlaylistEntry> tracksList = new ArrayList<>();
+    private Core.PlayerProgress progress = Core.PlayerProgress.Null;
     private int currentPlayerInstance = -1;
     private int currentGroup = -1;
     private int currentTrackInGroup = -1;
@@ -91,7 +93,8 @@ public class Player {
     private static class TracksPlayerOnTrackEvent {
         public final int instance;
         public final int track;
-        public boolean isPlaying;
+        public final boolean isPlaying;
+        public final Core.PlayerProgress progress;
     }
 
     /**
@@ -109,8 +112,8 @@ public class Player {
             eventBus.post(new TracksPlayerFinishedEvent(instance));
         }
         @Override
-        public void onTrack(int track, boolean isPlaying) {
-            eventBus.post(new TracksPlayerOnTrackEvent(instance, track, isPlaying));
+        public void onTrack(int track, boolean isPlaying, Core.PlayerProgress progress) {
+            eventBus.post(new TracksPlayerOnTrackEvent(instance, track, isPlaying, progress));
         }
     }
 
@@ -140,6 +143,7 @@ public class Player {
         currentPlayer.clear();
         currentPlayerInstance = sequence.incrementAndGet();
         currentPlayer = player.create(playNow, playNext, new ListenerForPlayer(currentPlayerInstance));
+        progress = Core.PlayerProgress.Null;
     }
 
     public void play(List<Player.PlaylistEntry> tracks) {
@@ -206,6 +210,10 @@ public class Player {
         broadcastTrackList();
     }
 
+    public void seekTo(int toMillis) {
+        currentPlayer.seekTo(toMillis);
+    }
+
     public void updateAutoPlayNext(boolean playNext) {
         this.playNext = playNext;
         currentPlayer.playNext(playNext);
@@ -221,9 +229,14 @@ public class Player {
         } else {
             currentTrackInGroup = track;
             currentPlayer.jumpTo(track);
+            progress = Core.PlayerProgress.Null;
         }
         isPlaying = true;
         broadcastTrackList();
+    }
+
+    public void sendStatusUpdate() {
+        currentPlayer.requestProgressUpdate();
     }
 
     private void nullOutPlayer() {
@@ -257,7 +270,9 @@ public class Player {
             trackGroups.add(new Core.PlaylistEntry(entry.id, entry.name(), entry.thumbnail(), tracks));
             group++;
         }
-        eventBus.postSticky(new UIBackendEvents.TracksLatest(isPlaying, playNext, trackGroups));
+        eventBus.postSticky(new UIBackendEvents.TracksLatest(
+                isPlaying, playNext,
+                trackGroups, progress));
     }
 
     public void destroy() {

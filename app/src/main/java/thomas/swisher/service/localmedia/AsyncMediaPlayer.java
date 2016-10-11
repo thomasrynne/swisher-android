@@ -9,22 +9,20 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import thomas.swisher.shared.Core;
+
 /**
  * The media player methods can be slow, so to avoid holding up the UI updates
  * the calls are run on its own thread.
  */
-public class AsyncMediaPlayer {
+public abstract class AsyncMediaPlayer {
     private MediaPlayer mediaPlayer = new MediaPlayer();
     private AtomicBoolean ready = new AtomicBoolean(false);
     private ExecutorService executor = Executors.newSingleThreadExecutor();
-    public AsyncMediaPlayer(Runnable onComplete) {
-        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                onComplete.run();
-            }
-        });
+    public AsyncMediaPlayer() {
+        mediaPlayer.setOnCompletionListener((mp) -> onFinished());
     }
+    public void onFinished() {}
     public void play(String pathOrUrl, int seekToMillis, boolean playNow) {
         executor.execute(() -> {
             try {
@@ -46,8 +44,8 @@ public class AsyncMediaPlayer {
     public int currentPosition() {
         return mediaPlayer.getCurrentPosition();
     }
-    public void seekTo(int millis) {
-        mediaPlayer.seekTo(millis);
+    public void seekTo(int toMillis) {
+        mediaPlayer.seekTo(toMillis);
     }
     public void stop() {
         mediaPlayer.stop();
@@ -69,12 +67,11 @@ public class AsyncMediaPlayer {
         mediaPlayer.release();
         executor.shutdown();
     }
-    public int progress() {
+    public Core.PlayerProgress progress() {
         if (ready.get()) {
-            //KnownPlayerProgress(mediaPlayer.getDuration(), mediaPlayer.getCurrentPosition())
+            return new Core.PlayerProgress(mediaPlayer.getDuration(), mediaPlayer.getCurrentPosition(), true);
         } else {
-            //UnknownPlayerProgress
+            return Core.PlayerProgress.Null;
         }
-        return 0;
     }
 }

@@ -32,6 +32,19 @@ public class Core {
     }
 
     @Value
+    public static class PlayerProgress {
+        public static PlayerProgress Null = new PlayerProgress(0, 0, false);
+        public final int totalMillis;
+        public final int progressMillis;
+        public boolean enabled;
+        public PlayerProgress withProgressMillis(int progressMillis) {
+            return new PlayerProgress(totalMillis, progressMillis, enabled);
+        }
+    }
+
+
+
+    @Value
     public static class MenuPath {
         public static MenuPath Root = new MenuPath(new String[]{});
         private final String[] path;

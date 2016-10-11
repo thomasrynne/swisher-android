@@ -252,20 +252,25 @@ public class MediaStoreSource {
         private MediaHandler.PlayerListener listener;
         private int currentTrack = 0;
         private boolean playNext;
-        private AsyncMediaPlayer mediaPlayer = new AsyncMediaPlayer(
-                () -> {
-                    if ((currentTrack + 1) < tracks.size()) {
-                        currentTrack++;
-                        playCurrent(playNext);
-                        listener.onTrack(currentTrack, playNext);
-                    } else {
-                        listener.finished();
-                    }
+        private AsyncMediaPlayer mediaPlayer = new AsyncMediaPlayer() {
+            public void onFinished() {
+                if ((currentTrack + 1) < tracks.size()) {
+                    currentTrack++;
+                    playCurrent(playNext);
+                    broadcastPosition();
+                } else {
+                    listener.finished();
                 }
-        );
+            }
+        };
+
+        private void broadcastPosition() {
+            listener.onTrack(currentTrack, playNext, mediaPlayer.progress());
+        }
 
         private void playCurrent(boolean playNow) {
             mediaPlayer.play(tracks.get(currentTrack).path.getPath(), 0, playNow);
+            broadcastPosition();
         }
 
         LocalMediaPlayer(List<Track> tracks, boolean playNow, boolean playNext, MediaHandler.PlayerListener listener) {
@@ -284,11 +289,13 @@ public class MediaStoreSource {
         @Override
         public void stop() {
             mediaPlayer.stop();
+            broadcastPosition();
         }
 
         @Override
         public void pausePlay() {
             mediaPlayer.pausePlay();
+            broadcastPosition();
         }
 
         @Override
@@ -305,6 +312,17 @@ public class MediaStoreSource {
         public void jumpTo(int track) {
             currentTrack=track;
             playCurrent(true);
+        }
+
+        @Override
+        public void seekTo(int toMillis) {
+            mediaPlayer.seekTo(toMillis);
+            broadcastPosition();
+        }
+
+        @Override
+        public void requestProgressUpdate() {
+            broadcastPosition();
         }
     }
 }

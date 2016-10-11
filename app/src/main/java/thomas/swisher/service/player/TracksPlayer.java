@@ -7,4 +7,6 @@ public interface TracksPlayer {
     void clear();
     void playNext(boolean play);
     void jumpTo(int track);
+    void seekTo(int toMillis);
+    void requestProgressUpdate(); //sent when an activity resumes to get progress update
 }

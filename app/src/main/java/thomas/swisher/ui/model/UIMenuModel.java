@@ -17,10 +17,10 @@ public class UIMenuModel {
         private MenuItemList menuItemList = new MenuItemList(Collections.emptyList());
         private Consumer<MenuPath> listener;
         private Optional<MenuPath> pendingMenu = Optional.absent();
-        private UIModel.Core core;
+        private UIModel.CoreModel core;
         private MenuPath currentPath = MenuPath.Root;
 
-        public Core(UIModel.Core core) {
+        public Core(UIModel.CoreModel core) {
             this.core = core;
         }
 

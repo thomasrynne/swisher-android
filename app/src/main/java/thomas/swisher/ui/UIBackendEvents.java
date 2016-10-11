@@ -28,6 +28,7 @@ public class UIBackendEvents {
         public boolean isPlaying;
         public boolean playNext;
         public final List<Core.PlaylistEntry> tracks;
+        public final Core.PlayerProgress progress;
     }
 
     @Value // Used by the service to display messages
@@ -93,6 +94,11 @@ public class UIBackendEvents {
     @Value
     public static class RemoveTrackEvent {
         public final int position;
+    }
+
+    @Value
+    public static class SeekToEvent {
+        public final int toMillis;
     }
 
     @Value

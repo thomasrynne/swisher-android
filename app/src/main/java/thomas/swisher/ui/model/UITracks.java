@@ -33,14 +33,14 @@ public class UITracks {
 
     public static class Model {
 
-        private UIModel.Core core;
+        private UIModel.CoreModel core;
         private List<PlaylistEntry> playlist = new ArrayList<>();
         private Optional<Uri> currentTrackImage = Optional.absent();
         private TracksChangeListener listener;
         private boolean collapsed = false;
         private List<Core.PlaylistEntry> tracks = Collections.emptyList();
 
-        public Model(UIModel.Core core) {
+        public Model(UIModel.CoreModel core) {
             this.core = core;
         }
 

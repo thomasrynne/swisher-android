@@ -57,14 +57,9 @@ public class JsonEventHandler {
         }
     };
 
-    public Utils.FlatJson playListJson() {
-        return player.playlistJson();
-    }
-
     private void play(List<Player.PlaylistEntry> tracks) {
         player.play(tracks);
     }
-
 
     private Optional<Player.PlaylistEntry> tracksFor(Utils.FlatJson json) {
         val x = mediaHandlers.transformAndConcat( (MediaHandler handler) -> handler.handle(json).asSet() ).first();

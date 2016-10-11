@@ -9,9 +9,9 @@ public class UIControls {
     public enum ButtonState { STOP, PAUSE, PLAY, NONE }
 
     public static class Core {
-        private final UIModel.Core uiRoot;
+        private final UIModel.CoreModel uiRoot;
 
-        public Core(UIModel.Core uiRoot) {
+        public Core(UIModel.CoreModel uiRoot) {
             this.uiRoot = uiRoot;
         }
 
@@ -45,8 +45,16 @@ public class UIControls {
             uiRoot.fullScreen();
         }
 
-        public void updateAutoPlayNext(boolean playNext) {
-            uiRoot.updateAutoPlayNext(playNext);
+        public void sendAutoPlayNext(boolean playNext) {
+            uiRoot.sendAutoPlayNext(playNext);
+        }
+
+        public void seekTo(int toMillis) {
+            uiRoot.seekTo(toMillis);
+        }
+
+        public thomas.swisher.shared.Core.PlayerProgress progress() {
+            return uiRoot.progress();
         }
     }
 }

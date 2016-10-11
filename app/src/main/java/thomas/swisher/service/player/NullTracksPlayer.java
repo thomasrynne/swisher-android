@@ -33,4 +33,14 @@ public class NullTracksPlayer implements TracksPlayer {
     public void clear() {
 
     }
+
+    @Override
+    public void seekTo(int toMillis) {
+
+    }
+
+    @Override
+    public void requestProgressUpdate() {
+
+    }
 }
