@@ -4,6 +4,7 @@ import android.app.Service;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 
 import java.util.Collections;
 import java.util.List;
@@ -38,6 +39,11 @@ public class JsonEventHandler {
         }
     }
 
+    public List<Player.PlaylistEntry> playlistEntries(List<Utils.FlatJson> entries) {
+        return FluentIterable.from(entries).
+                transformAndConcat((item) -> tracksFor(item).asSet()).toList();
+    }
+
     public void play(Utils.FlatJson json) {
         val playlist = tracksFor(json);
         if (playlist.isPresent()) {
@@ -58,7 +64,8 @@ public class JsonEventHandler {
     };
 
     public Utils.FlatJson playListJson() {
-        return player.playlistJson();
+        List<Utils.FlatJson> items = player.playlistJson();
+        return Utils.json().add("playlist", items).build();
     }
 
     private void play(List<Player.PlaylistEntry> tracks) {
@@ -70,7 +77,6 @@ public class JsonEventHandler {
         val x = mediaHandlers.transformAndConcat( (MediaHandler handler) -> handler.handle(json).asSet() ).first();
         return x.transform( (e) -> Player.PlaylistEntry.create(json, e));
     }
-
 
     private interface MiniHandler {
         boolean handle(Utils.FlatJson json);
@@ -94,8 +100,7 @@ public class JsonEventHandler {
         @Override
         public boolean handle(Utils.FlatJson json) {
             if (json.has("playlist")) {
-                val playlistItems = FluentIterable.from(json.getList("playlist")).
-                        transformAndConcat( (item) -> tracksFor(item).asSet() ).toList();
+                List<Player.PlaylistEntry> playlistItems = playlistEntries(json.getList("playlist"));
                 player.play(playlistItems);
                 screenOn.wakeUp();
                 return true;

@@ -5,28 +5,34 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.google.common.base.Optional;
 
-import lombok.val;
+import java.util.List;
+
 import thomas.swisher.JsonEventHandler;
 import thomas.swisher.MediaHandler;
+import thomas.swisher.service.player.CurrentPlaylist;
+import thomas.swisher.shared.Core;
 import thomas.swisher.todo.CardStore;
 import thomas.swisher.todo.Songs;
 import thomas.swisher.ui.UIBackendEvents;
 import thomas.swisher.tree.MainMenuTree;
 import thomas.swisher.service.player.Player;
 import thomas.swisher.service.localmedia.MediaStoreSource;
+import thomas.swisher.utils.Utils;
 
 
 public class SwisherService extends Service {
 
 	private EventBus eventBus = EventBus.getDefault();
-    private Player player = new Player();
+    private Player player;
     private JsonEventHandler jsonEventHandler;
 	private CardStore cardStore;
 	private CardManager cardManager;
@@ -36,7 +42,7 @@ public class SwisherService extends Service {
         @Subscribe(threadMode = ThreadMode.ASYNC)
         public void onMenuRequest(UIBackendEvents.RequestMenuEvent event) {
             try {
-                val menuItems = menuTree.menuFor(event.menuPath);
+                Core.MenuItemList menuItems = menuTree.menuFor(event.menuPath);
                 eventBus.post(new UIBackendEvents.MenuResponse(event.menuPath, Optional.of(menuItems)));
             } catch (Exception e) {
                 Log.e("SWISHER", "Menu failure: " + event.menuPath, e);
@@ -107,16 +113,20 @@ public class SwisherService extends Service {
 
     public void onCreate() {
         Songs.init(getContentResolver());
-        val mediaStore = new MediaStoreSource(getBaseContext());
+        MediaStoreSource mediaStore = new MediaStoreSource(getBaseContext());
         menuTree = new MainMenuTree(eventBus,
             mediaStore.albumMenu(),
             mediaStore.tracksMenu()
         );
+        SharedPreferences playlistPreferences = getApplicationContext().getSharedPreferences(
+                "current_playlist", Context.MODE_PRIVATE);
+        player = new Player(new CurrentPlaylist(storePlaylist(playlistPreferences)));
         jsonEventHandler = new JsonEventHandler(this, player, new MediaHandler[] {
             mediaStore.albumHandler(),
             mediaStore.trackHandler()
         });
-		cardStore = new CardStore(this);
+        restorePlaylist(playlistPreferences);
+        cardStore = new CardStore(this);
         this.cardManager = new CardManager(eventBus, cardStore, jsonEventHandler.jsonHandler);
         eventBus.register(listener);
 
@@ -124,7 +134,31 @@ public class SwisherService extends Service {
         if (requestMenuEvent != null) { //resend if there was already a request
             eventBus.postSticky(requestMenuEvent);
         }
-    };
+    }
+
+    private CurrentPlaylist.Store storePlaylist(SharedPreferences playlistPreferences) {
+        return (json) -> {
+            SharedPreferences.Editor editor = playlistPreferences.edit();
+            String text = Utils.json().add("items", json).build().asString();
+            editor.putString("previous-playlist", text);
+            editor.commit();
+        };
+    }
+
+    private void restorePlaylist(SharedPreferences playlistPreferences) {
+        try {
+            String json = playlistPreferences.getString("previous-playlist", "");
+            if (!json.isEmpty()) {
+                List<Player.PlaylistEntry> entries = jsonEventHandler.playlistEntries(
+                        Utils.FlatJson.parse(json).getList("items"));
+                player.initialisePlaylist(entries);
+            }
+        } catch (Exception e) {
+            Log.e("SWISHER", "Previous playlist restore failed", e);
+        }
+    }
+
+    ;
     
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		return Service.START_STICKY;
