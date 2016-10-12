@@ -56,5 +56,20 @@ public class UIControls {
         public thomas.swisher.shared.Core.PlayerProgress progress() {
             return uiRoot.progress();
         }
+
+        public String duration() {
+            if (uiRoot.progress().enabled) {
+                int totalSeconds = uiRoot.progress().totalMillis / 1000;
+                int minutes = totalSeconds / 60;
+                int seconds = totalSeconds % 60;
+                if (seconds < 10) {
+                    return minutes + ":0" + seconds;
+                } else {
+                    return minutes + ":" + seconds;
+                }
+            } else {
+                return "";
+            }
+        }
     }
 }

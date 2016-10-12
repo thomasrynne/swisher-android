@@ -23,6 +23,7 @@ public abstract class AsyncMediaPlayer {
         mediaPlayer.setOnCompletionListener((mp) -> onFinished());
     }
     public void onFinished() {}
+    public void onReady() {}
     public void play(String pathOrUrl, int seekToMillis, boolean playNow) {
         executor.execute(() -> {
             try {
@@ -36,13 +37,14 @@ public abstract class AsyncMediaPlayer {
                     mediaPlayer.start();
                 }
                 ready.set(true);
+                onReady();
             } catch (IOException e) {
                 Log.e("SWISHER", "Play failed: " + pathOrUrl, e);
             }
         });
     }
-    public int currentPosition() {
-        return mediaPlayer.getCurrentPosition();
+    public boolean isPlaying() {
+        return mediaPlayer.isPlaying();
     }
     public void seekTo(int toMillis) {
         mediaPlayer.seekTo(toMillis);

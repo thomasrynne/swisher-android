@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -75,7 +76,7 @@ public class Player {
         }
     };
 
-    private ArrayList<PlaylistEntry> tracksList = new ArrayList<>();
+    private CurrentPlaylist playlist;
     private Core.PlayerProgress progress = Core.PlayerProgress.Null;
     private int currentPlayerInstance = -1;
     private int currentGroup = -1;
@@ -117,24 +118,25 @@ public class Player {
         }
     }
 
-    public Player() {
-        eventBus.register(listener);
+    public Player(CurrentPlaylist currentPlaylist) {
+        this.eventBus.register(listener);
+        this.playlist = currentPlaylist;
     }
 
     private void toNext() {
-        if (tracksList.size() == 1) { //only one group, just cueBeginning start
+        if (playlist.size() == 1) { //only one group, just cueBeginning start
             currentTrackInGroup = 0;
             isPlaying = false;
             currentPlayer.cueBeginning();
-        } else if ((currentGroup+1) < tracksList.size()) { //there is a next group, play/cue it
+        } else if ((currentGroup+1) < playlist.size()) { //there is a next group, play/cue it
             currentGroup++;
             currentTrackInGroup = 0;
-            initPlayer(tracksList.get(currentGroup).entry.player, playNext);
+            initPlayer(playlist.get(currentGroup).entry.player, playNext);
         } else { //we got to the end, create and cue the start group
             currentPlayer.clear();
             currentTrackInGroup = 0;
             currentGroup = 0;
-            initPlayer(tracksList.get(0).entry.player, false);
+            initPlayer(playlist.get(0).entry.player, false);
         }
         broadcastTrackList();
     }
@@ -146,12 +148,23 @@ public class Player {
         progress = Core.PlayerProgress.Null;
     }
 
-    public void play(List<Player.PlaylistEntry> tracks) {
-        tracksList.clear();
-        if (!tracks.isEmpty()) {
-            initPlayer(tracks.get(0).entry.player, true);
-            tracksList.addAll(tracks);
-            isPlaying = true;
+    public void play(List<PlaylistEntry> playlistEntries) {
+        updatePlaylist(playlistEntries, true);
+    }
+
+    public void initialisePlaylist(List<PlaylistEntry> entries) {
+        playlist.initialise(entries);
+        restartPlaylist(false);
+    }
+
+    public void updatePlaylist(List<Player.PlaylistEntry> tracks, boolean playNow) {
+        playlist.replace(tracks);
+        restartPlaylist(playNow);
+    }
+    private void restartPlaylist(boolean playNow) {
+        if (!playlist.isEmpty()) {
+            initPlayer(playlist.get(0).entry.player, playNow);
+            isPlaying = playNow;
             currentGroup = 0;
             currentTrackInGroup = 0;
         } else {
@@ -161,21 +174,20 @@ public class Player {
     }
 
     public void add(Player.PlaylistEntry tracks) {
-        if (tracksList.isEmpty()) {
+        if (playlist.isEmpty()) {
             currentGroup = 0;
             currentTrackInGroup = 0;
             initPlayer(tracks.entry.player, false);
         }
-        Log.i("X", "add " + currentGroup);
-        tracksList.add(tracks);
+        playlist.add(tracks);
         broadcastTrackList();
     }
 
     public void remove(int groupPosition) {
-        tracksList.remove(groupPosition);
+        playlist.remove(groupPosition);
         if (currentGroup == groupPosition) {
-            if (!tracksList.isEmpty()) {
-                initPlayer(tracksList.get(0).entry.player, false);
+            if (!playlist.isEmpty()) {
+                initPlayer(playlist.get(0).entry.player, false);
                 currentGroup = 0;
                 currentTrackInGroup = 0;
                 isPlaying = false;
@@ -187,10 +199,7 @@ public class Player {
     }
 
     public void swap(int a, int b) {
-        val aa = tracksList.get(a);
-        val bb = tracksList.get(b);
-        tracksList.set(a, bb);
-        tracksList.set(b, aa);
+        playlist.swap(a, b);
         if (currentGroup == a) {
             currentGroup = b;
         } else if (currentGroup == b) {
@@ -222,7 +231,7 @@ public class Player {
 
     public void playTrack(int group, int track) {
         if (currentGroup != group) {
-            initPlayer(tracksList.get(group).entry.player, false);
+            initPlayer(playlist.get(group).entry.player, false);
             currentPlayer.jumpTo(track);
             currentGroup = group;
             currentTrackInGroup = track;
@@ -247,20 +256,19 @@ public class Player {
     }
 
     public void clearPlaylist() {
-        tracksList.clear();
+        playlist.clear();
         nullOutPlayer();
         broadcastTrackList();
     }
 
-    public Utils.FlatJson playlistJson() {
-        val items = FluentIterable.from(tracksList).transform(x -> x.json).toList();
-        return Utils.json().add("playlist", items).build();
+    public List<Utils.FlatJson> playlistJson() {
+        return FluentIterable.from(playlist.toList()).transform(x -> x.json).toList();
     }
 
     private void broadcastTrackList() {
         val trackGroups = new LinkedList<Core.PlaylistEntry>();
         int group = 0;
-        for (Player.PlaylistEntry entry: tracksList) {
+        for (Player.PlaylistEntry entry: playlist.toList()) {
             List<Core.Track> tracks = new LinkedList<>();
             int trackInGroup = 0;
             for (MediaHandler.TrackDescription track: entry.entry.getTracks()) {

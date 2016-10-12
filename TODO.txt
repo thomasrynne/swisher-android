@@ -24,51 +24,24 @@ Use java 8 lambdas DONE
  - tidy up code (delete & check remaining and move) DONE
  - collapse group when menu is shown DONE
  - playlist reordering DONE
-
+ - store player state (for restore after hard kill) DONE
+ - add progress bar support DONE
  - move first label in track list to bottom of list entry
- - big button squashed after restore
+ - main image not centered
  - thumbnails shrinking
  - show fallback image
  - better menu-back button
+ - show menu error in menu
  - smaller menu items for sub menus
- - space under big button
 
  - cancel menu change
  - commit to github
 
 
  - card lookup and json lookup is on background thread. Is that OK?
+ - tracksplayer informs player of play state. Is that OK?
+ - fix Songs class (get automatic updates?)
 
  - add youtube
-
-
-
-
-
-
-
-
-Start again with same project definition
- -just add Main w/o youtube and only menu
- -menu state is held in activity, updated by void async methods on menu state class?
- -need async update to menu
-
-Steps:
- -non functional control panel
- -non functional tracks list (hard coded list)
- -non functional menu (hard coded tree)
-
- -implement backend for menu (for local files & youtube)
- -implement music player (and update tracks)
- -implement controls
-
- (all using anvil and lambdas...
-
-
-use glide or check image loading is as good as glide
-use better http library (volley?)
-
-support phone layout (try on phone)
-put on playstore
-
-
+ - support phone layout (try on phone)
+ - put on playstore

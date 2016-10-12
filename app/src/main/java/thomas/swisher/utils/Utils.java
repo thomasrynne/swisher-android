@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.annimon.stream.Stream;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 
 import lombok.Value;
@@ -26,6 +27,14 @@ public class Utils {
 	@Value
 	public static class FlatJson {
 		public final JSONObject json;
+
+		public static FlatJson parse(String text) {
+			try {
+				return new FlatJson(new JSONObject(text));
+			} catch (JSONException e) {
+				throw new RuntimeException(e);
+			}
+		}
 
 		public boolean has(String name) {
 			return json.has(name);
@@ -51,6 +60,14 @@ public class Utils {
 				throw new RuntimeException(e);
 			}
 		}
+
+		public String asString() {
+			try {
+				return json.toString(2);
+			} catch (JSONException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 	public static FlatJsonBuilder json() {
@@ -69,7 +86,9 @@ public class Utils {
 		}
 		public FlatJsonBuilder add(String name, List<FlatJson> items) {
 			try {
-				json.put(name, new JSONArray(items));
+				ImmutableList<JSONObject> jsonValues = FluentIterable.from(items).
+						transform(item -> item.json).toList();
+				json.put(name, new JSONArray(jsonValues));
 				return this;
 			} catch (JSONException e) {
 				throw new RuntimeException(e);

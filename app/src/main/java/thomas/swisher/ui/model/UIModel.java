@@ -2,6 +2,7 @@ package thomas.swisher.ui.model;
 
 import android.net.Uri;
 import android.os.Handler;
+import android.util.Log;
 
 import com.google.common.base.Optional;
 
@@ -36,7 +37,9 @@ public class UIModel {
         private Core.PlayerProgress progress = Core.PlayerProgress.Null;
 
         private long lastRealProgressUpdateTime = 0;
+        private long progressAtLastRealUpdate = 0;
         private long currentState = 0;
+        private boolean paused = true;
 
         public CoreModel(Backend backend) {
             this.backend = backend;
@@ -54,6 +57,11 @@ public class UIModel {
             return tracks;
         }
 
+        public void updatePaused(boolean value) {
+            this.paused = value;
+            currentState++;
+        }
+
         private class UpdateProgress implements Runnable {
             private final long state;
             UpdateProgress(long state) {
@@ -62,8 +70,8 @@ public class UIModel {
             @Override
             public void run() {
                 if (currentState == state) {
-                    int timeSinceLastRealUpdate = (int) (System.currentTimeMillis() - lastRealProgressUpdateTime);
-                    progress = progress.withProgressMillis(progress.progressMillis + timeSinceLastRealUpdate);
+                    long timeSinceLastRealUpdate = System.currentTimeMillis() - lastRealProgressUpdateTime;
+                    progress = progress.withProgressMillis((int) (progressAtLastRealUpdate + timeSinceLastRealUpdate));
                     Anvil.render();
                     triggerProgressUpdate();
                 }
@@ -71,7 +79,7 @@ public class UIModel {
         };
 
         private void triggerProgressUpdate() {
-            handler.postDelayed(new UpdateProgress(currentState), 300);
+            handler.postDelayed(new UpdateProgress(currentState), 1000);
         }
 
         public void update(UIBackendEvents.TracksLatest tracks) {
@@ -80,7 +88,8 @@ public class UIModel {
             this.progress = tracks.progress;
             this.tracks.latest(tracks.tracks);
             currentState++;
-            if (isPlaying) {
+            if (!paused && isPlaying) {
+                this.progressAtLastRealUpdate = tracks.progress.progressMillis;
                 this.lastRealProgressUpdateTime = System.currentTimeMillis();
                 triggerProgressUpdate();
             }

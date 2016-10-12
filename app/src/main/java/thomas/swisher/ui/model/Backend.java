@@ -96,4 +96,12 @@ public class Backend {
     public void seekTo(int toMillis) {
         eventBus.post(new UIBackendEvents.SeekToEvent(toMillis));
     }
+
+    public void pause() {
+        core.updatePaused(true);
+    }
+
+    public void resume() {
+        core.updatePaused(false);
+    }
 }

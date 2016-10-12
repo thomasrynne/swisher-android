@@ -123,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         eventBus.register(recordCardDialogListener);
         eventBus.post(new UIBackendEvents.ActivityReadyEvent(true));
+        backend.resume();
         keepScreenOnFor5Seconds();
         Anvil.render();
     }
@@ -139,6 +140,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override protected void onPause() {
         super.onPause();
+        backend.pause();
         eventBus.unregister(recordCardDialogListener);
         eventBus.post(new UIBackendEvents.ActivityReadyEvent(false));
     }

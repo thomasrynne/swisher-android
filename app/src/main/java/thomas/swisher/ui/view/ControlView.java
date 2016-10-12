@@ -1,6 +1,8 @@
 package thomas.swisher.ui.view;
 
+import android.util.Log;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.SeekBar;
 
@@ -15,12 +17,16 @@ import static trikita.anvil.DSL.*;
 public class ControlView {
 
     private UIControls.Core controls;
-
     public ControlView(UIControls.Core controls) {
         this.controls = controls;
     }
 
     private boolean buttonTouched = false;
+
+    private static final int BUTTON = 1;
+    private static final int BAR = 2;
+    private static final int DURATION = 3;
+
 
     //Lambdas should replace this but there was confusion about which interface to implement
     private final CompoundButton.OnCheckedChangeListener keepPlayingCheckboxListener = new CompoundButton.OnCheckedChangeListener() {
@@ -45,6 +51,7 @@ public class ControlView {
             size(FILL, FILL);
             gravity(TOP);
             button(() -> {
+                id(BUTTON);
                 centerHorizontal();
                 size(dip(200), dip(200));
                 textSize(40);
@@ -55,7 +62,8 @@ public class ControlView {
             });
 
             checkBox(() -> {
-                size(dip(50), dip(50));
+                size(WRAP, WRAP);
+                textSize(20);
                 text("Play next");
                 checked(controls.isPlayNext());
                 onCheckedChange(keepPlayingCheckboxListener);
@@ -74,9 +82,25 @@ public class ControlView {
                 onClick((v) -> controls.toggleMenu());
             });
 
+            Core.PlayerProgress progress = controls.progress();
+
+            textView(() -> {
+                id(DURATION);
+                size(WRAP, WRAP);
+                below(BUTTON);
+                textSize(20);
+                margin(dip(10));
+                visibility(progress.enabled ? View.VISIBLE : View.INVISIBLE);
+                text(controls.duration());
+            });
+
             seekBar(() -> {
-                Core.PlayerProgress progress = controls.progress();
-                visibility(progress.enabled);
+                id(BAR);
+                size(FILL, WRAP);
+                below(BUTTON);
+                toRightOf(DURATION);
+                margin(0, dip(10), 0, dip(10));
+                visibility(progress.enabled ? View.VISIBLE : View.INVISIBLE);
                 max(progress.totalMillis);
                 progress(progress.progressMillis);
                 onSeekBarChange(seekListener);

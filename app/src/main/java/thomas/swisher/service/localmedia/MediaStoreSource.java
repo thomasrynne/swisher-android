@@ -262,10 +262,13 @@ public class MediaStoreSource {
                     listener.finished();
                 }
             }
+            public void onReady() {
+                broadcastPosition();
+            }
         };
 
         private void broadcastPosition() {
-            listener.onTrack(currentTrack, playNext, mediaPlayer.progress());
+            listener.onTrack(currentTrack, mediaPlayer.isPlaying(), mediaPlayer.progress());
         }
 
         private void playCurrent(boolean playNow) {
