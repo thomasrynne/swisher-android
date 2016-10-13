@@ -26,7 +26,7 @@ Use java 8 lambdas DONE
  - playlist reordering DONE
  - store player state (for restore after hard kill) DONE
  - add progress bar support DONE
- - move first label in track list to bottom of list entry
+ - move first label in track list to bottom of list entry DONE
  - main image not centered
  - thumbnails shrinking
  - show fallback image

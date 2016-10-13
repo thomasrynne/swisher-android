@@ -22,6 +22,9 @@ import static thomas.swisher.ui.view.AnvilExtras.ForDynamicListView.*;
 public class TracksView {
 
     private static final int MainTextId = 1;
+    private static final int ImageId  = 2;
+    private static final int TrackId = 3;
+
     private UITracks.Model model;
 
     public TracksView(UITracks.Model model) {
@@ -51,58 +54,59 @@ public class TracksView {
             Optional<UITracks.PlaylistEntry> maybeItem = model.trackAt(index);
             if (maybeItem.isPresent()) {
                 val item = maybeItem.get();
-                linearLayout(() -> {
-                    size(MATCH, MATCH);
-                    orientation(LinearLayout.HORIZONTAL);
+                relativeLayout(() -> {
+                    size(MATCH, WRAP);
                     imageView(() -> {
+                        id(ImageId);
                         size(dip(100), WRAP);
                         padding(0, 0, dip(1), 0);
                         glideURI(item.getThumbnail());
                     });
-                    linearLayout(() -> {
-                        orientation(LinearLayout.VERTICAL);
-                        size(MATCH, WRAP);
 
-                        textView(() -> {
-                            id(MainTextId);
-                            size(MATCH, WRAP);
-                            textSize(18);
-                            layoutGravity(TOP);
-                            visibility(item.getTopText().isPresent());
-                            if (item.getTopText().isPresent()) {
-                                text(item.getTopText().get());
-                            }
-                        });
+                    textView(() -> {
+                        id(MainTextId);
+                        size(FILL, WRAP);
+                        toRightOf(ImageId);
+                        alignParentTop();
+                        textSize(18);
+                        layoutGravity(TOP);
+                        visibility(item.getTopText().isPresent());
+                        if (item.getTopText().isPresent()) {
+                            text(item.getTopText().get());
+                        }
+                    });
 
-                        textView(() -> {
-                            textSize(22);
-                            size(MATCH, WRAP);
-                            layoutGravity(BOTTOM);
-                            visibility(item.getTrackName().isPresent());
-                            if (item.getTrackName().isPresent()) {
-                                text(item.getTrackName().get());
+                    textView(() -> {
+                        id(TrackId);
+                        size(FILL, WRAP);
+                        toRightOf(ImageId);
+                        alignParentBottom();
+                        textSize(22);
+                        layoutGravity(BOTTOM);
+                        visibility(item.getTrackName().isPresent());
+                        if (item.getTrackName().isPresent()) {
+                            text(item.getTrackName().get());
+                        }
+                        if (item.isCurrentTrack) {
+                            backgroundResource(R.drawable.track_playing);
+                        } else if (index == touchedTrack.or(-1)) {
+                            backgroundResource(R.drawable.track_touch);
+                        } else {
+                            backgroundResource(R.drawable.track_plain);
+                        }
+                        tag(index);
+                        onTouch((view, event) -> {
+                            int touchedIndex = ((Integer) view.getTag()).intValue();
+                            switch (event.getAction()) {
+                                case MotionEvent.ACTION_DOWN:
+                                    touchedTrack = Optional.of(touchedIndex);
+                                    break;
+                                case MotionEvent.ACTION_UP:
+                                    model.playTrackAt(touchedIndex);
+                                case MotionEvent.ACTION_CANCEL:
+                                    touchedTrack = Optional.absent();
                             }
-                            if (item.isCurrentTrack) {
-                                backgroundResource(R.drawable.track_playing);
-                            } else if (index == touchedTrack.or(-1)) {
-                                backgroundResource(R.drawable.track_touch);
-                            } else {
-                                backgroundResource(R.drawable.track_plain);
-                            }
-                            tag(index);
-                            onTouch((view, event) -> {
-                                int touchedIndex = ((Integer) view.getTag()).intValue();
-                                switch (event.getAction()) {
-                                    case MotionEvent.ACTION_DOWN:
-                                        touchedTrack = Optional.of(touchedIndex);
-                                        break;
-                                    case MotionEvent.ACTION_UP:
-                                        model.playTrackAt(touchedIndex);
-                                    case MotionEvent.ACTION_CANCEL:
-                                        touchedTrack = Optional.absent();
-                                }
-                                return true;
-                            });
+                            return true;
                         });
                     });
 

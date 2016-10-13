@@ -29,7 +29,6 @@ public class UIControls {
 
         public ButtonState buttonState() {
             if (uiRoot.hasPlaylist()) {
-                Log.i("X", "Is playing " + isPlaying());
                 return isPlaying() ? ButtonState.PAUSE : ButtonState.PLAY;
             } else {
                 return ButtonState.NONE;
