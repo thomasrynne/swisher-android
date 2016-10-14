@@ -27,6 +27,7 @@ Use java 8 lambdas DONE
  - store player state (for restore after hard kill) DONE
  - add progress bar support DONE
  - move first label in track list to bottom of list entry DONE
+ - slow track UI update after touch DONE
  - main image not centered
  - thumbnails shrinking
  - show fallback image
@@ -36,6 +37,7 @@ Use java 8 lambdas DONE
 
  - cancel menu change
  - commit to github
+ - scroll to track on play
 
 
  - card lookup and json lookup is on background thread. Is that OK?

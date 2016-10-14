@@ -27,6 +27,8 @@ public class UIBackendEvents {
     public static class TracksLatest {
         public boolean isPlaying;
         public boolean playNext;
+        public int currentGroup;
+        public int currentTrackInGroup;
         public final List<Core.PlaylistEntry> tracks;
         public final Core.PlayerProgress progress;
     }

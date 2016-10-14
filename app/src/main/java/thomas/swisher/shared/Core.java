@@ -28,7 +28,6 @@ public class Core {
     public static class Track {
         public final String name;
         public final Optional<Uri> image;
-        public final boolean isCurrentTrack;
     }
 
     @Value

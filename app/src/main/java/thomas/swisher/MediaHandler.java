@@ -23,7 +23,7 @@ public interface MediaHandler {
     }
 
     public interface ThePlayer {
-        public TracksPlayer create(boolean playNow, boolean playNext, PlayerListener listener);
+        public TracksPlayer create(boolean playNow, int currentTrack, boolean playNext, PlayerListener listener);
     }
 
     @Value

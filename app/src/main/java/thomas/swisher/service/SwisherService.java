@@ -103,7 +103,7 @@ public class SwisherService extends Service {
         }
         @Subscribe(threadMode = ThreadMode.BACKGROUND)
         public void onEventBackgroundThread(UIBackendEvents.PlayTrackByIndexEvent event) {
-            player.playTrack(event.group, event.track);
+            player.playTrackAt(event.group, event.track);
         }
         @Subscribe(threadMode = ThreadMode.BACKGROUND)
         public void onEventBackgroundThread(UIBackendEvents.RefreshAlbumCoversEvent event) {

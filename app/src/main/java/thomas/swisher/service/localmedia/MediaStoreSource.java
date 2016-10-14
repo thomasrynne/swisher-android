@@ -77,7 +77,7 @@ public class MediaStoreSource {
                                 name,
                                 Songs.imageForAlbum(albumId.get()),
                                 tracks,
-                                (playNow, playNext, listener) -> new LocalMediaPlayer(tracks, playNow, playNext, listener)
+                                (playNow, currentTrack, playNext, listener) -> new LocalMediaPlayer(tracks, playNow, currentTrack, playNext, listener)
                         ));
                     } else {
                         return Optional.absent();
@@ -105,7 +105,8 @@ public class MediaStoreSource {
                                 track.name(),
                                 track.image,
                                 singleTrack,
-                                (playNow, playNext, listener) -> new LocalMediaPlayer(singleTrack, playNow, playNext, listener)
+                                (playNow, currentTrack, playNext, listener) -> new LocalMediaPlayer(
+                                        singleTrack, playNow, currentTrack, playNext, listener)
                         ));
                     } else {
                         return Optional.absent();
@@ -257,7 +258,6 @@ public class MediaStoreSource {
                 if ((currentTrack + 1) < tracks.size()) {
                     currentTrack++;
                     playCurrent(playNext);
-                    broadcastPosition();
                 } else {
                     listener.finished();
                 }
@@ -276,8 +276,9 @@ public class MediaStoreSource {
             broadcastPosition();
         }
 
-        LocalMediaPlayer(List<Track> tracks, boolean playNow, boolean playNext, MediaHandler.PlayerListener listener) {
+        LocalMediaPlayer(List<Track> tracks, boolean playNow, int currentTrack, boolean playNext, MediaHandler.PlayerListener listener) {
             this.tracks = tracks;
+            this.currentTrack = currentTrack;
             this.playNext = playNext;
             this.listener = listener;
             playCurrent(playNow);

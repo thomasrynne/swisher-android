@@ -16,17 +16,6 @@ import thomas.swisher.shared.Core;
  */
 public class UITracks {
 
-    @Value
-    public static class PlaylistEntry {
-        public final long itemID;
-        public final int group;
-        public final int track;
-        public final Optional<String> topText;
-        public final Optional<Uri> thumbnail;
-        public final Optional<String> trackName;
-        public final boolean isCurrentTrack;
-    }
-
     public interface TracksChangeListener {
         public void trackChanged();
     }
@@ -39,6 +28,21 @@ public class UITracks {
         private TracksChangeListener listener;
         private boolean collapsed = false;
         private List<Core.PlaylistEntry> tracks = Collections.emptyList();
+        private int currentGroup = -1;
+        private int currentTrackInGroup = -1;
+
+        @Value
+        public class PlaylistEntry {
+            public final long itemID;
+            public final int group;
+            public final int track;
+            public final Optional<String> topText;
+            public final Optional<Uri> thumbnail;
+            public final Optional<String> trackName;
+            public boolean isCurrentTrack() {
+                return group==currentGroup && track == currentTrackInGroup;
+            }
+        }
 
         public Model(UIModel.CoreModel core) {
             this.core = core;
@@ -50,6 +54,9 @@ public class UITracks {
 
         public void playTrackAt(int index) {
             PlaylistEntry entry = trackAt(index).get();
+            //updating the UI model so that the track is marked as playing straight away
+            //without this there is a 20ms - 300ms delay
+            updateCurrentTrack(entry.group, entry.track);
             core.playTrackAt(entry.group, entry.track);
         }
 
@@ -65,9 +72,16 @@ public class UITracks {
             return playlist.size();
         }
 
-        public void latest(List<Core.PlaylistEntry> tracks) {
+        public void latest(List<Core.PlaylistEntry> tracks, int currentGroup, int currentTrackInGroup) {
             this.tracks = tracks;
+            updateCurrentTrack(currentGroup, currentTrackInGroup);
             rebuild();
+        }
+
+        private void updateCurrentTrack(int currentGroup, int currentTrackInGroup) {
+            this.currentGroup = currentGroup;
+            this.currentTrackInGroup = currentTrackInGroup;
+            this.currentTrackImage = tracks.get(currentGroup).getTracks().get(currentTrackInGroup).image;
         }
 
         public void rebuild() {
@@ -78,13 +92,7 @@ public class UITracks {
                 for (Core.PlaylistEntry entry: tracks) {
                     playlist.add(new PlaylistEntry(
                         entry.id * 1000, group, 0, Optional.of(entry.getName()), entry.thumbnail,
-                        Optional.absent(), false));
-                    for (int i = 0; i < entry.tracks.size(); i++) {
-                        val track = entry.tracks.get(i);
-                        if (track.isCurrentTrack) {
-                            currentTrackImage = track.image;
-                        }
-                    }
+                        Optional.absent()));
                     group++;
                 }
             } else {
@@ -93,18 +101,12 @@ public class UITracks {
                     val firstTrack = entry.tracks.get(0);
                     playlist.add(new PlaylistEntry(
                             entry.id * 1000, group, 0, Optional.of(entry.getName()), entry.thumbnail,
-                            Optional.of(firstTrack.name), firstTrack.isCurrentTrack));
-                    if (firstTrack.isCurrentTrack) {
-                        currentTrackImage = firstTrack.image;
-                    }
+                            Optional.of(firstTrack.name)));
                     for (int i = 1; i < entry.tracks.size(); i++) {
                         val track = entry.tracks.get(i);
                         playlist.add(new PlaylistEntry(
                                 entry.id + i, group, i, Optional.absent(), Optional.absent(),
-                                Optional.of(track.name), track.isCurrentTrack));
-                        if (track.isCurrentTrack) {
-                            currentTrackImage = track.image;
-                        }
+                                Optional.of(track.name)));
                     }
                     group++;
                 }

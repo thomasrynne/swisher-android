@@ -1,5 +1,6 @@
 package thomas.swisher.ui.view;
 
+import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.LinearLayout;
 
@@ -51,7 +52,7 @@ public class TracksView {
 
         @Override
         public void view(int index) {
-            Optional<UITracks.PlaylistEntry> maybeItem = model.trackAt(index);
+            Optional<UITracks.Model.PlaylistEntry> maybeItem = model.trackAt(index);
             if (maybeItem.isPresent()) {
                 val item = maybeItem.get();
                 relativeLayout(() -> {
@@ -87,7 +88,7 @@ public class TracksView {
                         if (item.getTrackName().isPresent()) {
                             text(item.getTrackName().get());
                         }
-                        if (item.isCurrentTrack) {
+                        if (item.isCurrentTrack()) {
                             backgroundResource(R.drawable.track_playing);
                         } else if (index == touchedTrack.or(-1)) {
                             backgroundResource(R.drawable.track_touch);
@@ -102,9 +103,12 @@ public class TracksView {
                                     touchedTrack = Optional.of(touchedIndex);
                                     break;
                                 case MotionEvent.ACTION_UP:
+                                    touchedTrack = Optional.absent();
                                     model.playTrackAt(touchedIndex);
+                                    break;
                                 case MotionEvent.ACTION_CANCEL:
                                     touchedTrack = Optional.absent();
+                                    break;
                             }
                             return true;
                         });

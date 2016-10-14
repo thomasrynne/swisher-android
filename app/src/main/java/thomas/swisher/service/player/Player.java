@@ -131,20 +131,20 @@ public class Player {
         } else if ((currentGroup+1) < playlist.size()) { //there is a next group, play/cue it
             currentGroup++;
             currentTrackInGroup = 0;
-            initPlayer(playlist.get(currentGroup).entry.player, playNext);
+            initPlayer(playlist.get(currentGroup).entry.player, playNext, 0);
         } else { //we got to the end, create and cue the start group
             currentPlayer.clear();
             currentTrackInGroup = 0;
             currentGroup = 0;
-            initPlayer(playlist.get(0).entry.player, false);
+            initPlayer(playlist.get(0).entry.player, false, 0);
         }
         broadcastTrackList();
     }
 
-    private void initPlayer(MediaHandler.ThePlayer player, boolean playNow) {
+    private void initPlayer(MediaHandler.ThePlayer player, boolean playNow, int currentTrack) {
         currentPlayer.clear();
         currentPlayerInstance = sequence.incrementAndGet();
-        currentPlayer = player.create(playNow, playNext, new ListenerForPlayer(currentPlayerInstance));
+        currentPlayer = player.create(playNow, currentTrack, playNext, new ListenerForPlayer(currentPlayerInstance));
         progress = Core.PlayerProgress.Null;
     }
 
@@ -163,7 +163,7 @@ public class Player {
     }
     private void restartPlaylist(boolean playNow) {
         if (!playlist.isEmpty()) {
-            initPlayer(playlist.get(0).entry.player, playNow);
+            initPlayer(playlist.get(0).entry.player, playNow, 0);
             isPlaying = playNow;
             currentGroup = 0;
             currentTrackInGroup = 0;
@@ -177,7 +177,7 @@ public class Player {
         if (playlist.isEmpty()) {
             currentGroup = 0;
             currentTrackInGroup = 0;
-            initPlayer(tracks.entry.player, false);
+            initPlayer(tracks.entry.player, false, 0);
         }
         playlist.add(tracks);
         broadcastTrackList();
@@ -187,7 +187,7 @@ public class Player {
         playlist.remove(groupPosition);
         if (currentGroup == groupPosition) {
             if (!playlist.isEmpty()) {
-                initPlayer(playlist.get(0).entry.player, false);
+                initPlayer(playlist.get(0).entry.player, false, 0);
                 currentGroup = 0;
                 currentTrackInGroup = 0;
                 isPlaying = false;
@@ -229,12 +229,11 @@ public class Player {
         broadcastTrackList();
     }
 
-    public void playTrack(int group, int track) {
+    public void playTrackAt(int group, int track) {
         if (currentGroup != group) {
-            initPlayer(playlist.get(group).entry.player, false);
-            currentPlayer.jumpTo(track);
             currentGroup = group;
             currentTrackInGroup = track;
+            initPlayer(playlist.get(group).entry.player, true, track);
         } else {
             currentTrackInGroup = track;
             currentPlayer.jumpTo(track);
@@ -249,7 +248,7 @@ public class Player {
     }
 
     private void nullOutPlayer() {
-        initPlayer((playNow, playNext, listener) -> new NullTracksPlayer(), false);
+        initPlayer((playNow, currentTrack, playNext, listener) -> new NullTracksPlayer(), false, 0);
         currentGroup = -1;
         currentTrackInGroup = -1;
         isPlaying = false;
@@ -267,19 +266,15 @@ public class Player {
 
     private void broadcastTrackList() {
         val trackGroups = new LinkedList<Core.PlaylistEntry>();
-        int group = 0;
         for (Player.PlaylistEntry entry: playlist.toList()) {
             List<Core.Track> tracks = new LinkedList<>();
-            int trackInGroup = 0;
             for (MediaHandler.TrackDescription track: entry.entry.getTracks()) {
-                tracks.add(new Core.Track(track.name(), track.image(), group==currentGroup && trackInGroup==currentTrackInGroup));
-                trackInGroup++;
+                tracks.add(new Core.Track(track.name(), track.image()));
             }
             trackGroups.add(new Core.PlaylistEntry(entry.id, entry.name(), entry.thumbnail(), tracks));
-            group++;
         }
         eventBus.postSticky(new UIBackendEvents.TracksLatest(
-                isPlaying, playNext,
+                isPlaying, playNext, currentGroup, currentTrackInGroup,
                 trackGroups, progress));
     }
 

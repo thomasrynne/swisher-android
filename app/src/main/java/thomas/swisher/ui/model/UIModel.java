@@ -86,7 +86,7 @@ public class UIModel {
             this.isPlaying = tracks.isPlaying;
             this.playNext = tracks.playNext;
             this.progress = tracks.progress;
-            this.tracks.latest(tracks.tracks);
+            this.tracks.latest(tracks.tracks, tracks.currentGroup, tracks.currentTrackInGroup);
             currentState++;
             if (!paused && isPlaying) {
                 this.progressAtLastRealUpdate = tracks.progress.progressMillis;
