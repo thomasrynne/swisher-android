@@ -69,7 +69,13 @@ public class Player {
         public void onEvent(TracksPlayerOnTrackEvent event) {
             if (Player.this.currentPlayerInstance == event.instance) {
                 Player.this.currentTrackInGroup = event.track;
-                Player.this.isPlaying = event.isPlaying;
+                Player.this.isPlaying = playNext;
+                broadcastTrackList();
+            }
+        }
+        @Subscribe(threadMode = ThreadMode.BACKGROUND)
+        public void onEvent(TracksPlayerProgressEvent event) {
+            if (Player.this.currentPlayerInstance == event.instance) {
                 Player.this.progress = event.progress;
                 broadcastTrackList();
             }
@@ -94,7 +100,11 @@ public class Player {
     private static class TracksPlayerOnTrackEvent {
         public final int instance;
         public final int track;
-        public final boolean isPlaying;
+    }
+
+    @Value
+    private static class TracksPlayerProgressEvent {
+        public final int instance;
         public final Core.PlayerProgress progress;
     }
 
@@ -113,8 +123,12 @@ public class Player {
             eventBus.post(new TracksPlayerFinishedEvent(instance));
         }
         @Override
-        public void onTrack(int track, boolean isPlaying, Core.PlayerProgress progress) {
-            eventBus.post(new TracksPlayerOnTrackEvent(instance, track, isPlaying, progress));
+        public void onTrack(int track) {
+            eventBus.post(new TracksPlayerOnTrackEvent(instance, track));
+        }
+        @Override
+        public void currentProgress(Core.PlayerProgress progress) {
+            eventBus.post(new TracksPlayerProgressEvent(instance, progress));
         }
     }
 

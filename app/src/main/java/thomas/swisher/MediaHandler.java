@@ -19,7 +19,8 @@ public interface MediaHandler {
 
     public interface PlayerListener {
         public void finished();
-        public void  onTrack(int position, boolean isPlaying, Core.PlayerProgress progress);
+        public void  onTrack(int position);
+        public void currentProgress(Core.PlayerProgress progress);
     }
 
     public interface ThePlayer {

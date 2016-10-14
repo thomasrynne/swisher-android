@@ -258,6 +258,7 @@ public class MediaStoreSource {
                 if ((currentTrack + 1) < tracks.size()) {
                     currentTrack++;
                     playCurrent(playNext);
+                    listener.onTrack(currentTrack);
                 } else {
                     listener.finished();
                 }
@@ -268,7 +269,7 @@ public class MediaStoreSource {
         };
 
         private void broadcastPosition() {
-            listener.onTrack(currentTrack, mediaPlayer.isPlaying(), mediaPlayer.progress());
+            listener.currentProgress(mediaPlayer.progress());
         }
 
         private void playCurrent(boolean playNow) {
