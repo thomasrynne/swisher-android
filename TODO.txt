@@ -28,12 +28,16 @@ Use java 8 lambdas DONE
  - add progress bar support DONE
  - move first label in track list to bottom of list entry DONE
  - slow track UI update after touch DONE
+ - smaller menu items for sub menus DONE
  - main image not centered
+ - move menu toggle button
+ - single track item has wrong group title
+ - better use 'back' for menu back
  - thumbnails shrinking
  - show fallback image
- - better menu-back button
  - show menu error in menu
- - smaller menu items for sub menus
+ - menu lost on rotate
+ - clear playlist does not update screen
 
  - cancel menu change
  - commit to github

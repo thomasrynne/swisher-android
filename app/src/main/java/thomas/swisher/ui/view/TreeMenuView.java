@@ -33,7 +33,7 @@ public class TreeMenuView {
                 size(50, 50);
                 text(text);
                 toRightOf(rightOf);
-                visibility(visible ? View.VISIBLE : View.GONE);
+                visibility(visible);
                 more.view();
             });
         }
@@ -74,6 +74,7 @@ public class TreeMenuView {
                 padding(5);
 
                 imageView(() -> {
+                    visibility(json.isPresent());
                     id(ThumbnailId);
                     glideURI(thumbnail);
                     size(80, 80);
