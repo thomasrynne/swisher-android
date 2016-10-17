@@ -30,7 +30,6 @@ Use java 8 lambdas DONE
  - slow track UI update after touch DONE
  - smaller menu items for sub menus DONE
  - move menu toggle button
- - single track item has wrong group title
  - better use 'back' for menu back
  - thumbnails shrinking
  - show fallback image

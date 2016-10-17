@@ -102,7 +102,7 @@ public class MediaStoreSource {
                         val track = maybeTrack.get();
                         val singleTrack = Collections.singletonList(track);
                         return Optional.of(new MediaHandler.PlaylistEntry(
-                                track.name(),
+                                track.fullAlbumName(),
                                 track.image,
                                 singleTrack,
                                 (playNow, currentTrack, playNext, listener) -> new LocalMediaPlayer(
@@ -154,6 +154,7 @@ public class MediaStoreSource {
     @Value
     static class Track implements MediaHandler.TrackDescription {
         public final String trackTitle;
+        public final String albumName;
         public final String artistName;
         public final int track;
         public final Uri path;
@@ -162,6 +163,10 @@ public class MediaStoreSource {
         @Override
         public String name() {
             return trackTitle;
+        }
+
+        public String fullAlbumName() {
+            return albumName + " (" + artistName + ")";
         }
 
         @Override
@@ -175,6 +180,7 @@ public class MediaStoreSource {
                 .projection(
                         MediaStore.MediaColumns.TITLE,
                         MediaStore.Audio.AudioColumns.ARTIST,
+                        MediaStore.Audio.AlbumColumns.ALBUM,
                         MediaStore.Audio.AudioColumns.TRACK,
                         MediaStore.Audio.AlbumColumns.ALBUM_ID,
                         MediaStore.MediaColumns.DATA)
@@ -189,6 +195,7 @@ public class MediaStoreSource {
                 .projection(
                         MediaStore.MediaColumns.TITLE,
                         MediaStore.Audio.AudioColumns.ARTIST,
+                        MediaStore.Audio.AlbumColumns.ALBUM,
                         MediaStore.Audio.AudioColumns.TRACK,
                         MediaStore.Audio.AlbumColumns.ALBUM_ID,
                         MediaStore.MediaColumns.DATA)
@@ -205,10 +212,12 @@ public class MediaStoreSource {
             int artistIndex = cursor.getColumnIndex(MediaStore.Audio.AudioColumns.ARTIST);
             int trackIndex = cursor.getColumnIndex(MediaStore.Audio.AudioColumns.TRACK);
             int albumIdIndex = cursor.getColumnIndex(MediaStore.Audio.AlbumColumns.ALBUM_ID);
+            int albumNameIndex = cursor.getColumnIndex(MediaStore.Audio.AlbumColumns.ALBUM);
             int dataIndex = cursor.getColumnIndex(MediaStore.Audio.AudioColumns.DATA);
 
             String title = cursor.getString(titleIndex);
             String artistName = cursor.getString(artistIndex);
+            String albumName = cursor.getString(albumNameIndex);
             int index = cursor.getInt(trackIndex);
             int albumId = cursor.getInt(albumIdIndex);
             String path = cursor.getString(dataIndex);
@@ -216,6 +225,7 @@ public class MediaStoreSource {
             return new Track(
                     title,
                     artistName,
+                    albumName,
                     index,
                     Uri.parse(path),
                     Songs.imageForAlbum(albumId));

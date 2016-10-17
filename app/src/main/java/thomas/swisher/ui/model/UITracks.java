@@ -81,7 +81,8 @@ public class UITracks {
         private void updateCurrentTrack(int currentGroup, int currentTrackInGroup) {
             this.currentGroup = currentGroup;
             this.currentTrackInGroup = currentTrackInGroup;
-            this.currentTrackImage = tracks.get(currentGroup).getTracks().get(currentTrackInGroup).image;
+            this.currentTrackImage = tracks.isEmpty() ? Optional.absent() :
+                    tracks.get(currentGroup).getTracks().get(currentTrackInGroup).image;
         }
 
         public void rebuild() {
