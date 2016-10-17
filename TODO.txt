@@ -36,7 +36,6 @@ Use java 8 lambdas DONE
  - thumbnails shrinking
  - show fallback image
  - show menu error in menu
- - menu lost on rotate
 
  - cancel menu change
  - commit to github
