@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Window;
@@ -72,14 +73,11 @@ public class MainActivity extends AppCompatActivity {
                             controlView.view();
                         });
 
-                        linearLayout(() -> { //----------------------------[Main Image]
+                        imageView(() -> {    //----------------------------[Main Image]
                             height(0);
                             weight(1);
-
-                            imageView(() -> {
-                                layoutGravity(Gravity.CENTER);
-                                glideURI(coreUI.bigImage());
-                            });
+                            layoutGravity(Gravity.CENTER);
+                            glideURI(coreUI.bigImage());
                         });
                     });
 
