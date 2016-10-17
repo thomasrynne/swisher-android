@@ -37,7 +37,6 @@ Use java 8 lambdas DONE
  - show fallback image
  - show menu error in menu
  - menu lost on rotate
- - clear playlist does not update screen
 
  - cancel menu change
  - commit to github

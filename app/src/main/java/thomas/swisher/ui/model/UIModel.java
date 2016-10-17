@@ -2,7 +2,6 @@ package thomas.swisher.ui.model;
 
 import android.net.Uri;
 import android.os.Handler;
-import android.util.Log;
 
 import com.google.common.base.Optional;
 
@@ -39,7 +38,7 @@ public class UIModel {
         private long lastRealProgressUpdateTime = 0;
         private long progressAtLastRealUpdate = 0;
         private long currentState = 0;
-        private boolean paused = true;
+        private boolean activityPaused = true;
 
         public CoreModel(Backend backend) {
             this.backend = backend;
@@ -58,7 +57,7 @@ public class UIModel {
         }
 
         public void updatePaused(boolean value) {
-            this.paused = value;
+            this.activityPaused = value;
             currentState++;
         }
 
@@ -88,7 +87,7 @@ public class UIModel {
             this.progress = tracks.progress;
             this.tracks.latest(tracks.tracks, tracks.currentGroup, tracks.currentTrackInGroup);
             currentState++;
-            if (!paused && isPlaying) {
+            if (!activityPaused && isPlaying) {
                 this.progressAtLastRealUpdate = tracks.progress.progressMillis;
                 this.lastRealProgressUpdateTime = System.currentTimeMillis();
                 triggerProgressUpdate();
