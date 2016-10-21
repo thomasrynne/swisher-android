@@ -63,11 +63,13 @@ public abstract class AsyncMediaPlayer {
         }
     }
     public void release() {
-        if (mediaPlayer.isPlaying()) {
-            mediaPlayer.stop();
-        }
-        mediaPlayer.release();
-        executor.shutdown();
+        executor.submit(() -> {
+            if (ready.get() && mediaPlayer.isPlaying()) {
+                mediaPlayer.stop();
+            }
+            mediaPlayer.release();
+            executor.shutdown();
+        });
     }
     public Core.PlayerProgress progress() {
         if (ready.get()) {
