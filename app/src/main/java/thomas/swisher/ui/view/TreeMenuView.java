@@ -2,16 +2,26 @@ package thomas.swisher.ui.view;
 
 import android.net.Uri;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+import lombok.val;
 import trikita.anvil.Anvil;
+import trikita.anvil.DSL;
 import trikita.anvil.RenderableAdapter;
 import com.google.common.base.Optional;
+
+import java.util.Arrays;
+import java.util.Iterator;
+
 import thomas.swisher.utils.Utils;
 import thomas.swisher.shared.Core;
 import thomas.swisher.ui.model.UIMenuModel;
+
+import static android.R.attr.enabled;
+import static android.R.attr.path;
 import static thomas.swisher.ui.view.AnvilExtras.ForGlide.*;
 
 import static trikita.anvil.DSL.*;
@@ -20,7 +30,7 @@ import static trikita.anvil.DSL.*;
  */
 public class TreeMenuView {
 
-    private RenderableAdapter adapter = new RenderableAdapter() {
+    private AlwaysRenderedRenderableAdapter adapter = new AlwaysRenderedRenderableAdapter() {
         private static final int ThumbnailId    = 1;
         private static final int PlayButtonId   = 2;
         private static final int AddButtonId    = 3;
@@ -40,8 +50,10 @@ public class TreeMenuView {
         @Override
         public void view(int index) {
 
+            if (index >= core.items().size()) {
+                return; //This is a spare recycled view which is not in use
+            }
             Core.UIMenuItem item = core.items().get(index);
-            Log.i("X", "Rendering view for " + index + " " + item);
             item.render(new Core.UIMenuRender() {
                 @Override
                 public void renderDoItItem(String name, Runnable runnable) {
@@ -50,8 +62,10 @@ public class TreeMenuView {
 
                 @Override
                 public void renderSubMenu(String name, String pathName) {
-                    renderMenuItem(name + "...", 30, Optional.absent(), Optional.absent(),
-                            () -> onClick(view -> core.goToMenu(core.currentPath().append(name))));
+                    val path = core.currentPath().append(name);
+                    val loading = core.isLoading(path) ? "**" : "";
+                    renderMenuItem(name + "..." + loading, 30, Optional.absent(), Optional.absent(),
+                            () -> onClick(view -> core.goToMenu(path)));
                 }
 
                 @Override
@@ -62,6 +76,11 @@ public class TreeMenuView {
                 @Override
                 public void renderCardActionItem(String name, Utils.FlatJson json) {
                     renderMenuItem(name, 20, Optional.absent(), Optional.of(json), () -> {});
+                }
+
+                @Override
+                public void renderMessage(String message) {
+                    renderMenuItem(message, 10, Optional.absent(), Optional.absent(), () -> {});
                 }
             });
         }
@@ -117,17 +136,39 @@ public class TreeMenuView {
             orientation(LinearLayout.VERTICAL);
 
             linearLayout(() -> {
+                gravity(Gravity.RIGHT);
+                for (Core.MenuPath path: core.currentPath().paths()) {
+                    String name = path.name().or("Home");
+                    if (path.equals(core.currentPath())) {
+                        textView(() -> {
+                            text(name);
+                            textSize(12);
+                        });
+                    } else {
+                        button(() -> {
+                            text(name + " >");
+                            textSize(12);
+                            onClick(view -> core.goToMenu(path));
+                        });
+                    }
+                }
+                space(() -> {
+                    size(0, 0);
+                    weight(1);
+                });
+                textView(() -> {
+                    visibility(core.isBusy() ? View.VISIBLE : View.INVISIBLE);
+                    gravity(Gravity.RIGHT);
+                    text("Busy");
+                });
                 button(() -> {
-                    text("<-");
-                    onClick((v) -> core.goToMenu(core.currentPath().parent().get()));
-                    enabled(!core.currentPath().isRoot());
+                    DSL.enabled(core.isBusy());
+                    gravity(Gravity.RIGHT);
+                    text("Stop");
+                    onClick(view -> core.stopMenuTransition());
                 });
-                textView(() -> {
-                    textSize(12);
-                    text(core.currentPath().text());
-                });
-                textView(() -> {
-                    text(core.isBusy() ? " Busy " : "");
+                MenuToggle.button(core.uiRoot(), () -> {
+                    gravity(Gravity.RIGHT);
                 });
             });
             listView(() -> {

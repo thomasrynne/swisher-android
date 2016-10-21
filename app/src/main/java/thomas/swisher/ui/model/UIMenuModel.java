@@ -5,11 +5,15 @@ import android.util.Log;
 import com.annimon.stream.function.Consumer;
 import com.google.common.base.Optional;
 
+import thomas.swisher.shared.Core;
+import thomas.swisher.ui.UIBackendEvents;
 import trikita.anvil.Anvil;
 import thomas.swisher.utils.Utils;
 import thomas.swisher.shared.Core.*;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.SynchronousQueue;
 
 public class UIMenuModel {
 
@@ -19,6 +23,8 @@ public class UIMenuModel {
         private Optional<MenuPath> pendingMenu = Optional.absent();
         private UIModel.CoreModel core;
         private MenuPath currentPath = MenuPath.Root;
+        private long menuRequestStart;
+        private static final long IGNORED_MENU_DURATION = 300;
 
         public Core(UIModel.CoreModel core) {
             this.core = core;
@@ -28,17 +34,32 @@ public class UIMenuModel {
             return currentPath;
         }
 
+        public boolean isLoading(MenuPath path) {
+            return pendingMenu.isPresent() && pendingMenu.get().equals(path);
+        }
+
+        public void back() {
+            if (currentPath().parent().isPresent()) {
+                goToMenu(currentPath().parent().get());
+            }
+        }
+
+        public boolean canBack() {
+            return !currentPath().isRoot();
+        }
+
         public MenuItemList items() {
             return menuItemList;
         }
 
         public boolean isBusy() {
-            return pendingMenu.isPresent();
+            long timeSinceMenuRequest = System.currentTimeMillis()  - menuRequestStart;
+            return pendingMenu.isPresent() && (timeSinceMenuRequest > IGNORED_MENU_DURATION);
         }
 
         public void stopMenuTransition() {
             if (pendingMenu.isPresent()) {
-                core.backend().cancelMenu(pendingMenu.get());
+                //For now we forget about the requested menu. Perhaps we should cancel the request.
                 pendingMenu = Optional.absent();
             }
         }
@@ -60,24 +81,36 @@ public class UIMenuModel {
         }
 
         public void goToMenu(MenuPath path) {
+            stopMenuTransition();
             pendingMenu = Optional.of(path);
+            menuRequestStart = System.currentTimeMillis();
             core.backend().menuFor(path);
+            core.runLater(() -> Anvil.render(), IGNORED_MENU_DURATION + 10);
+            Anvil.render();
         }
 
-        public void onMenuResponse(MenuPath menuPath, Optional<MenuItemList> menuItemList) {
-            Log.i("X", "menu response" + menuPath);
+        public void onMenuResponse(MenuPath menuPath, UIBackendEvents.MenuResult result) {
             if (pendingMenu.isPresent() && pendingMenu.get().equals(menuPath)) {
-                if (menuItemList.isPresent()) {
-                    this.currentPath = menuPath;
-                    this.menuItemList = menuItemList.get();
-                    this.listener.accept(menuPath);
-                } else {
-                    //TODO toast
-                    Log.e("X", "Menu failed " + menuPath);
-                }
+                result.handle(new UIBackendEvents.MenuResultHandler() {
+                    @Override
+                    public void visit(UIBackendEvents.SuccessMenuResult success) {
+                        menuItemList = success.menuItemList;
+                    }
+
+                    @Override
+                    public void visit(UIBackendEvents.FailureMenuResult failure) {
+                        menuItemList = new MenuItemList(Arrays.asList(new ErrorMenuItem(failure.message)));
+                    }
+                });
+                currentPath = menuPath;
+                listener.accept(menuPath);
                 this.pendingMenu = Optional.absent();
                 Anvil.render();
             }
+        }
+
+        public UIModel.CoreModel uiRoot() {
+            return core;
         }
     }
 

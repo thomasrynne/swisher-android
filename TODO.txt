@@ -29,14 +29,11 @@ Use java 8 lambdas DONE
  - move first label in track list to bottom of list entry DONE
  - slow track UI update after touch DONE
  - smaller menu items for sub menus DONE
- - move menu toggle button
- - better use 'back' for menu back
- - thumbnails shrinking
+ - move menu toggle button DONE
+ - better use 'back' for menu back DONE
+ - show menu error in menu DONE
+ - cancel menu change DONE
  - show fallback image
- - show menu error in menu
-
- - cancel menu change
- - commit to github
  - scroll to track on play
 
 
@@ -44,6 +41,7 @@ Use java 8 lambdas DONE
  - tracksplayer informs player of play state. Is that OK?
  - fix Songs class (get automatic updates?)
 
- - add youtube
+ - youtube menu items for watchlater/history/...
+ - play youtube videos
  - support phone layout (try on phone)
  - put on playstore

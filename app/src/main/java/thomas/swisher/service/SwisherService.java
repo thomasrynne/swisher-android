@@ -43,10 +43,13 @@ public class SwisherService extends Service {
         public void onMenuRequest(UIBackendEvents.RequestMenuEvent event) {
             try {
                 Core.MenuItemList menuItems = menuTree.menuFor(event.menuPath);
-                eventBus.post(new UIBackendEvents.MenuResponse(event.menuPath, Optional.of(menuItems)));
+                eventBus.post(new UIBackendEvents.MenuResponse(
+                        event.menuPath,
+                        new UIBackendEvents.SuccessMenuResult(menuItems)));
             } catch (Exception e) {
                 Log.e("SWISHER", "Menu failure: " + event.menuPath, e);
-                eventBus.post(new UIBackendEvents.MenuResponse(event.menuPath, Optional.absent()));
+                eventBus.post(new UIBackendEvents.MenuResponse(event.menuPath,
+                        new UIBackendEvents.FailureMenuResult(e.getMessage())));
             }
         }
         @Subscribe(threadMode = ThreadMode.BACKGROUND)

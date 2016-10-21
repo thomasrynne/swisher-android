@@ -44,7 +44,7 @@ public class Backend {
     private final Object listener = new Object() {
         @Subscribe(threadMode = ThreadMode.MAIN)
         public void onMenuResponse(UIBackendEvents.MenuResponse response) {
-            core.menu().onMenuResponse(response.menuPath, response.menuItemList);
+            core.menu().onMenuResponse(response.menuPath, response.result);
         }
         @Subscribe(threadMode = ThreadMode.MAIN)
         public void latestTracks(UIBackendEvents.TracksLatest tracks) {
@@ -55,10 +55,6 @@ public class Backend {
 
     public void menuFor(Core.MenuPath path) {
         eventBus.postSticky(new UIBackendEvents.RequestMenuEvent(path));
-    }
-
-    public void cancelMenu(Core.MenuPath path) {
-        eventBus.post(new UIBackendEvents.CancelMenuEvent(path));
     }
 
     public void pausePlay() {

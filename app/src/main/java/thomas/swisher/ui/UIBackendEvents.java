@@ -15,10 +15,38 @@ public class UIBackendEvents {
 
     private UIBackendEvents(){}
 
+    public interface MenuResult {
+        public void handle(MenuResultHandler handler);
+    }
+    public interface MenuResultHandler {
+        public void visit(SuccessMenuResult success);
+        public void visit(FailureMenuResult failure);
+    }
+
+    @Value
+    public static class SuccessMenuResult implements MenuResult {
+        public final Core.MenuItemList menuItemList;
+
+        @Override
+        public void handle(MenuResultHandler handler) {
+            handler.visit(this);
+        }
+    }
+
+    @Value
+    public static class FailureMenuResult implements MenuResult {
+        public final String message;
+
+        @Override
+        public void handle(MenuResultHandler handler) {
+            handler.visit(this);
+        }
+    }
+
     @Value
     public static class MenuResponse {
         public final Core.MenuPath menuPath;
-        public final Optional<Core.MenuItemList> menuItemList;
+        public final MenuResult result;
     }
 
     //Server -> GUI (*Latest)
@@ -54,11 +82,6 @@ public class UIBackendEvents {
 
     @Value
     public static class RequestMenuEvent {
-        public final Core.MenuPath menuPath;
-    }
-
-    @Value
-    public static class CancelMenuEvent {
         public final Core.MenuPath menuPath;
     }
 

@@ -61,6 +61,23 @@ public class UIModel {
             currentState++;
         }
 
+        public boolean back() {
+            if (menu.canBack()) {
+                menu.back();
+                return true;
+            }
+            if (showMenu()) {
+                toggleShowMenu();
+                Anvil.render();
+                return true;
+            }
+            return false;
+        }
+
+        public void runLater(Runnable run, long delay) {
+            handler.postDelayed(run, delay);
+        }
+
         private class UpdateProgress implements Runnable {
             private final long state;
             UpdateProgress(long state) {
@@ -78,7 +95,7 @@ public class UIModel {
         };
 
         private void triggerProgressUpdate() {
-            handler.postDelayed(new UpdateProgress(currentState), 1000);
+            runLater(new UpdateProgress(currentState), 1000);
         }
 
         public void update(UIBackendEvents.TracksLatest tracks) {

@@ -6,9 +6,11 @@ import android.text.TextUtils;
 import com.google.common.base.Optional;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import lombok.Value;
+import lombok.val;
 import thomas.swisher.utils.Utils;
 
 /**
@@ -69,6 +71,22 @@ public class Core {
         public boolean isRoot() {
             return path.length == 0;
         }
+
+        public List<MenuPath> paths() {
+            val list = new LinkedList<MenuPath>();
+            list.add(MenuPath.Root);
+            for (int i = 0; i < path.length; i++) {
+                list.add(new MenuPath(Arrays.copyOf(path, i+1)));
+            }
+            return list;
+        }
+        public Optional<String> name() {
+            if (isRoot()) {
+                return Optional.absent();
+            } else {
+                return Optional.of(path[path.length-1]);
+            }
+        }
     }
 
     @Value
@@ -87,6 +105,7 @@ public class Core {
         public void renderSubMenu(String name, String pathName);
         public void renderPlaylistItem(String name, Utils.FlatJson json, Optional<Uri> thumbnail);
         public void renderCardActionItem(String name, Utils.FlatJson json);
+        public void renderMessage(String message);
     }
     public interface UIMenuItem {
         public void render(UIMenuRender render);
@@ -99,6 +118,15 @@ public class Core {
         @Override
         public void render(UIMenuRender renderer) {
             renderer.renderDoItItem(label, doIt);
+        }
+    }
+
+    @Value
+    public static class ErrorMenuItem implements UIMenuItem {
+        private final String message;
+        @Override
+        public void render(UIMenuRender renderer) {
+            renderer.renderMessage(message);
         }
     }
 

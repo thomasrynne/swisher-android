@@ -36,10 +36,6 @@ public class UIControls {
 
         }
 
-        public void toggleMenu() {
-            uiRoot.toggleShowMenu();
-        }
-
         public void fullScreen() {
             uiRoot.fullScreen();
         }
@@ -69,6 +65,10 @@ public class UIControls {
             } else {
                 return "";
             }
+        }
+
+        public UIModel.CoreModel uiRoot() {
+            return uiRoot;
         }
     }
 }

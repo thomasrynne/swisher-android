@@ -93,6 +93,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onBackPressed() {
+        if (!coreUI.back()) {
+            finish();
+        }
+    }
+
+    @Override
     public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
         startService(new Intent(this, SwisherService.class));

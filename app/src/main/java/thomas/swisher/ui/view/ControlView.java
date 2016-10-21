@@ -70,17 +70,7 @@ public class ControlView {
                 layoutGravity(LEFT);
             });
 
-            imageButton(() -> {
-                centerHorizontal();
-                size(dip(80), dip(80));
-                margin(0, dip(10), 0, 0);
-                alignParentRight();
-                alignParentTop();
-                layoutGravity(RIGHT);
-                textSize(12);
-                imageResource(R.drawable.lines);
-                onClick((v) -> controls.toggleMenu());
-            });
+            MenuToggle.button(controls.uiRoot(), () -> visibility(!controls.uiRoot().showMenu()));
 
             Core.PlayerProgress progress = controls.progress();
 
