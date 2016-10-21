@@ -268,7 +268,7 @@ public class MediaStoreSource {
                 if ((currentTrack + 1) < tracks.size()) {
                     currentTrack++;
                     playCurrent(playNext);
-                    listener.onTrack(currentTrack);
+                    listener.onTrack(playNext, currentTrack);
                 } else {
                     listener.finished();
                 }

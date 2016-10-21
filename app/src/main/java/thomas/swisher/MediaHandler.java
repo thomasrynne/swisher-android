@@ -18,8 +18,13 @@ public interface MediaHandler {
     public Optional<PlaylistEntry> handle(Utils.FlatJson json);
 
     public interface PlayerListener {
+        //Informs the main player that this player has finished playing all of its tracks
         public void finished();
-        public void  onTrack(int position);
+        //Informs the main player that this player has moved onto the next track in its list
+        public void onTrack(boolean autoPlayedThisTrack, int position);
+        //Updates the main player with the current progress of the track
+        //This should be called each time a new track starts and on pause/play events
+        //The ui will assume that when a track is playing progress proceeds at 1ms per ms ;)
         public void currentProgress(Core.PlayerProgress progress);
     }
 

@@ -1,17 +1,14 @@
 package thomas.swisher.service.player;
 
 import android.net.Uri;
-import android.util.Log;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -69,7 +66,7 @@ public class Player {
         public void onEvent(TracksPlayerOnTrackEvent event) {
             if (Player.this.currentPlayerInstance == event.instance) {
                 Player.this.currentTrackInGroup = event.track;
-                Player.this.isPlaying = playNext;
+                Player.this.isPlaying = event.autoPlayedThisTrack;
                 broadcastTrackList();
             }
         }
@@ -99,6 +96,7 @@ public class Player {
     @Value
     private static class TracksPlayerOnTrackEvent {
         public final int instance;
+        public final boolean autoPlayedThisTrack;
         public final int track;
     }
 
@@ -123,8 +121,8 @@ public class Player {
             eventBus.post(new TracksPlayerFinishedEvent(instance));
         }
         @Override
-        public void onTrack(int track) {
-            eventBus.post(new TracksPlayerOnTrackEvent(instance, track));
+        public void onTrack(boolean autoPlayedThisTrack, int track) {
+            eventBus.post(new TracksPlayerOnTrackEvent(instance, autoPlayedThisTrack, track));
         }
         @Override
         public void currentProgress(Core.PlayerProgress progress) {

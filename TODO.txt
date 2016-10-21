@@ -38,7 +38,6 @@ Use java 8 lambdas DONE
 
 
  - card lookup and json lookup is on background thread. Is that OK?
- - tracksplayer informs player of play state. Is that OK?
  - fix Songs class (get automatic updates?)
 
  - youtube menu items for watchlater/history/...
