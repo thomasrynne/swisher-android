@@ -81,6 +81,7 @@ public class UIMenuModel {
         }
 
         public void goToMenu(MenuPath path) {
+            core.ensureMenuIsShowing();
             stopMenuTransition();
             pendingMenu = Optional.of(path);
             menuRequestStart = System.currentTimeMillis();
@@ -111,6 +112,10 @@ public class UIMenuModel {
 
         public UIModel.CoreModel uiRoot() {
             return core;
+        }
+
+        public void refresh() {
+            goToMenu(currentPath);
         }
     }
 

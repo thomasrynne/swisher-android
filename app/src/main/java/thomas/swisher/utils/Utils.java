@@ -36,6 +36,14 @@ public class Utils {
 			}
 		}
 
+		public FlatJson object(String name) {
+			try {
+				return new FlatJson(json.getJSONObject(name));
+			} catch (JSONException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
 		public boolean has(String name) {
 			return json.has(name);
 		}

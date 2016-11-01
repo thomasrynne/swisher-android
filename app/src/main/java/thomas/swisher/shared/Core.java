@@ -1,5 +1,6 @@
 package thomas.swisher.shared;
 
+import android.app.Activity;
 import android.net.Uri;
 import android.text.TextUtils;
 
@@ -11,6 +12,7 @@ import java.util.List;
 
 import lombok.Value;
 import lombok.val;
+import thomas.swisher.ui.model.UIMenuModel;
 import thomas.swisher.utils.Utils;
 
 /**
@@ -102,6 +104,7 @@ public class Core {
 
     public interface UIMenuRender {
         public void renderDoItItem(String name, Runnable runnable);
+        public void renderDoItItem(String name, ActivityAction action);
         public void renderSubMenu(String name, String pathName);
         public void renderPlaylistItem(String name, Utils.FlatJson json, Optional<Uri> thumbnail);
         public void renderCardActionItem(String name, Utils.FlatJson json);
@@ -112,9 +115,23 @@ public class Core {
     }
 
     @Value
-    public static class DoItUIMenuItem implements UIMenuItem {
+    public static class DoItBackendUIMenuItem implements UIMenuItem {
         private final String label;
         private final Runnable doIt;
+        @Override
+        public void render(UIMenuRender renderer) {
+            renderer.renderDoItItem(label, doIt);
+        }
+    }
+
+    public interface ActivityAction {
+        public void go(UIMenuModel.Core core, Activity activity);
+    }
+
+    @Value
+    public static class DoItActivityUIMenuItem implements UIMenuItem {
+        private final String label;
+        private final ActivityAction doIt;
         @Override
         public void render(UIMenuRender renderer) {
             renderer.renderDoItItem(label, doIt);

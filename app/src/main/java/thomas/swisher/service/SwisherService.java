@@ -27,6 +27,9 @@ import thomas.swisher.tree.MainMenuTree;
 import thomas.swisher.service.player.Player;
 import thomas.swisher.service.localmedia.MediaStoreSource;
 import thomas.swisher.utils.Utils;
+import thomas.swisher.youtube.AuthenticatedYouTubeHttpService;
+import thomas.swisher.youtube.YouTubeApi;
+import thomas.swisher.youtube.YouTubeSource;
 
 
 public class SwisherService extends Service {
@@ -128,9 +131,11 @@ public class SwisherService extends Service {
         Songs.init(getContentResolver());
 
         MediaStoreSource mediaStore = new MediaStoreSource(getBaseContext());
+        YouTubeSource youTubeSource = new YouTubeSource(new YouTubeApi(new AuthenticatedYouTubeHttpService(getBaseContext())));
         this.menuTree = new MainMenuTree(eventBus,
             mediaStore.albumMenu(),
-            mediaStore.tracksMenu()
+            mediaStore.tracksMenu(),
+            youTubeSource.menu()
         );
         SharedPreferences playlistPreferences = getApplicationContext().getSharedPreferences(
                 "current_playlist", Context.MODE_PRIVATE);

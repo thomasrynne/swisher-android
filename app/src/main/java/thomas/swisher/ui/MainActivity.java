@@ -17,6 +17,8 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import thomas.swisher.service.SwisherService;
 import static thomas.swisher.ui.view.AnvilExtras.ForGlide.*;
+
+import thomas.swisher.youtube.YouTubeSource;
 import trikita.anvil.Anvil;
 import thomas.swisher.ui.view.ControlView;
 import thomas.swisher.ui.model.Backend;
@@ -29,6 +31,7 @@ import static trikita.anvil.DSL.*;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final int YOUTUBE_AUTH_REQUEST_CODE = 1234;
     private EventBus eventBus = EventBus.getDefault();
     private OnKeyCardReader activityCardReader = new OnKeyCardReader(EventBus.getDefault());
     private final Handler handler = new Handler();
@@ -132,6 +135,15 @@ public class MainActivity extends AppCompatActivity {
         keepScreenOnFor5Seconds();
         Anvil.render();
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == YOUTUBE_AUTH_REQUEST_CODE) {
+            // go back to youtube menu if the user has come back from auth/play services install
+            coreUI.menu().goToMenu(YouTubeSource.MENU_PATH);
+        }
+    }
+
 
     private void keepScreenOnFor5Seconds() {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

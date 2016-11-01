@@ -43,6 +43,11 @@ dependencies {
     compile 'com.annimon:stream:1.1.2'
     compile 'com.github.bumptech.glide:glide:3.7.0'
     compile 'com.getbase.android.db:library:0.13.2'
+
+    //retrofit for youtube api calls
+    compile 'com.google.code.gson:gson:2.6.2'
+    compile 'com.squareup.retrofit2:retrofit:2.1.0'
+    compile 'com.squareup.retrofit2:converter-gson:2.1.0'
 }
 
 //listviewanimations

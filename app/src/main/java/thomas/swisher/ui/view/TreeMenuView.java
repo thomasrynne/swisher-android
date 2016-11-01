@@ -1,5 +1,8 @@
 package thomas.swisher.ui.view;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.net.Uri;
 import android.util.Log;
 import android.view.Gravity;
@@ -58,6 +61,30 @@ public class TreeMenuView {
                 @Override
                 public void renderDoItItem(String name, Runnable runnable) {
                     renderMenuItem(name, 30, Optional.absent(), Optional.absent(), () -> onClick(view -> runnable.run()));
+                }
+
+                private Activity activityFromView(View view) {
+                    Context context = view.getContext();
+                    while (context instanceof ContextWrapper) {
+                        if (context instanceof Activity) {
+                            return (Activity)context;
+                        }
+                        context = ((ContextWrapper)context).getBaseContext();
+                    }
+                    return null;
+                }
+
+                @Override
+                public void renderDoItItem(String name, Core.ActivityAction action) {
+                    renderMenuItem(name, 30, Optional.absent(), Optional.absent(),
+                        () -> onClick(view -> {
+                            Activity activity = activityFromView(view);
+                            if (activity != null) {
+                                action.go(core, activity);
+                            } else {
+                                //TODO error
+                            }
+                        }));
                 }
 
                 @Override

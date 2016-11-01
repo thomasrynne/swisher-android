@@ -46,12 +46,12 @@ public class MainMenuTree {
 
     //Todo: either make the doit menu item always post
     //or pass the main menu tree a more explicit control class
-    private final Core.DoItUIMenuItem clearPlaylist = new Core.DoItUIMenuItem(
+    private final Core.DoItBackendUIMenuItem clearPlaylist = new Core.DoItBackendUIMenuItem(
             "Clear Playlist",
             () -> eventBus.post(new UIBackendEvents.ClearPlayListEvent())
     );
 
-    private final Core.DoItUIMenuItem recordPlaylist = new Core.DoItUIMenuItem(
+    private final Core.DoItBackendUIMenuItem recordPlaylist = new Core.DoItBackendUIMenuItem(
             "Record Playlist",
             () -> eventBus.post(new UIBackendEvents.RecordPlayListEvent())
     );

@@ -29,6 +29,7 @@
 
     <!-- for youtube player -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
 
     <!-- for reading local music -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>

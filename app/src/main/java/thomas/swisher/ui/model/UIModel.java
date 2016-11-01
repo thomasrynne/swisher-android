@@ -78,6 +78,12 @@ public class UIModel {
             handler.postDelayed(run, delay);
         }
 
+        public void ensureMenuIsShowing() {
+            if (!showMenu) {
+                toggleShowMenu();
+            }
+        }
+
         private class UpdateProgress implements Runnable {
             private final long state;
             UpdateProgress(long state) {
