@@ -270,7 +270,7 @@ public class MediaStoreSource {
                     playCurrent(playNext);
                     listener.onTrack(playNext, currentTrack);
                 } else {
-                    listener.finished();
+                    listener.notify(MediaHandler.PlayerNotification.Finished);
                 }
             }
             public void onReady() {

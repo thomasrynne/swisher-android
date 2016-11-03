@@ -4,43 +4,34 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.LinearLayout;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import thomas.swisher.service.SwisherService;
-import static thomas.swisher.ui.view.AnvilExtras.ForGlide.*;
 
+import thomas.swisher.ui.youtube.YouTubeUI;
 import thomas.swisher.youtube.YouTubeSource;
 import trikita.anvil.Anvil;
-import thomas.swisher.ui.view.ControlView;
 import thomas.swisher.ui.model.Backend;
 import thomas.swisher.shared.Core;
 import thomas.swisher.ui.model.UIModel;
-import thomas.swisher.ui.view.TracksView;
-import thomas.swisher.ui.view.TreeMenuView;
-
-import static trikita.anvil.DSL.*;
 
 public class MainActivity extends AppCompatActivity {
 
     public static final int YOUTUBE_AUTH_REQUEST_CODE = 1234;
+
     private EventBus eventBus = EventBus.getDefault();
     private OnKeyCardReader activityCardReader = new OnKeyCardReader(EventBus.getDefault());
     private final Handler handler = new Handler();
 
     private Backend backend;
     private UIModel.CoreModel coreUI;
-    private TreeMenuView treeMenuView;
-    private ControlView controlView;
-    private TracksView tracksView;
+    private YouTubeUI youTubeUI;
 
     private Object recordCardDialogListener = new Object() {
         @Subscribe(threadMode = ThreadMode.MAIN)
@@ -49,52 +40,6 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private Anvil.Renderable mainView() {
-        return new Anvil.Renderable() {
-            @Override
-            public void view() {
-                linearLayout(() -> {
-                    size(MATCH, MATCH);
-                    padding(0,0,0,0);
-                    padding(15);
-                    orientation(LinearLayout.HORIZONTAL);
-
-                    frameLayout(() -> { //---------------------------------[Tracks]
-                        size(FILL, FILL);
-                        weight(1);
-                        gravity(Gravity.TOP);
-                        tracksView.view();
-                    });
-
-                    linearLayout(() -> { //--------------------------------[Controls]
-                        weight(1);
-                        orientation(LinearLayout.VERTICAL);
-                        height(FILL);
-
-                        linearLayout(() -> { //-----------------------------[Buttons]
-                            height(WRAP);
-                            controlView.view();
-                        });
-
-                        imageView(() -> {    //----------------------------[Main Image]
-                            height(0);
-                            weight(1);
-                            layoutGravity(Gravity.CENTER);
-                            glideURI(coreUI.bigImage());
-                        });
-                    });
-
-                    frameLayout(() -> { //---------------------------------[Menu]
-                        weight(1);
-                        visibility(coreUI.showMenu());
-                        treeMenuView.view();
-                        size(FILL, FILL);
-                    });
-                });
-            };
-        };
-    }
-
     @Override
     public void onBackPressed() {
         if (!coreUI.back()) {
@@ -102,25 +47,27 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressWarnings("ResourceType")
     @Override
     public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
         startService(new Intent(this, SwisherService.class));
         backend = new Backend(eventBus);
         coreUI = backend.coreUI();
-        treeMenuView = new TreeMenuView(coreUI.menu());
-        controlView = new ControlView(coreUI.controls());
-        tracksView = new TracksView(coreUI.tracks());
+        MainActivityLayout mainActivityLayout = new MainActivityLayout(backend.coreUI());
         backend.start();
         coreUI.menu().goToMenu(Core.MenuPath.Root);
+        youTubeUI = new YouTubeUI(this, coreUI);
 
-        Anvil.mount(findViewById(android.R.id.content), mainView());
+        Anvil.mount(findViewById(android.R.id.content), mainActivityLayout.view());
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         backend.stop();
+        youTubeUI.destroy();
+        Anvil.unmount(findViewById(android.R.id.content));
     }
 
     @Override public boolean onKeyUp(int keyCode, KeyEvent event) {

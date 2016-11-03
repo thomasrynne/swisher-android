@@ -142,7 +142,8 @@ public class SwisherService extends Service {
         this.player = new Player(new CurrentPlaylist(storePlaylist(playlistPreferences)));
         this.jsonEventHandler = new JsonEventHandler(this, player, new MediaHandler[] {
             mediaStore.albumHandler(),
-            mediaStore.trackHandler()
+            mediaStore.trackHandler(),
+            youTubeSource.videoHandler()
         });
         restorePlaylist(playlistPreferences);
         this.cardStore = new CardStore(this);

@@ -57,9 +57,14 @@ public class Player {
 
     private final Object listener = new Object() {
         @Subscribe(threadMode = ThreadMode.BACKGROUND)
-        public void onEvent(TracksPlayerFinishedEvent event) {
+        public void onEvent(TracksPlayerNotificationEvent event) {
             if (Player.this.currentPlayerInstance == event.instance) {
-                toNext();
+                switch (event.notification) {
+                    case Finished: toNext(); break;
+                    case Paused: isPlaying = false; break;
+                    case Playing: isPlaying = true; break;
+                }
+                broadcastTrackList();
             }
         }
         @Subscribe(threadMode = ThreadMode.BACKGROUND)
@@ -89,8 +94,9 @@ public class Player {
     private TracksPlayer currentPlayer = new NullTracksPlayer();
 
     @Value
-    private static class TracksPlayerFinishedEvent {
+    private static class TracksPlayerNotificationEvent {
         public final int instance;
+        public final MediaHandler.PlayerNotification notification;
     }
 
     @Value
@@ -116,9 +122,10 @@ public class Player {
         ListenerForPlayer(int instance) {
             this.instance = instance;
         }
+
         @Override
-        public void finished() {
-            eventBus.post(new TracksPlayerFinishedEvent(instance));
+        public void notify(MediaHandler.PlayerNotification notification) {
+            eventBus.post(new TracksPlayerNotificationEvent(instance, notification));
         }
         @Override
         public void onTrack(boolean autoPlayedThisTrack, int track) {
@@ -150,7 +157,6 @@ public class Player {
             currentGroup = 0;
             initPlayer(playlist.get(0).entry.player, false, 0);
         }
-        broadcastTrackList();
     }
 
     private void initPlayer(MediaHandler.ThePlayer player, boolean playNow, int currentTrack) {

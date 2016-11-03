@@ -62,6 +62,11 @@ dependencies {
     compile 'com.nineoldandroids:library:2.4.0'
 }
 
+def YOU_TUBE_PLAYER_API_KEY = '"' + YouTubePlayerApiKey + '"' ?: '"Define YouTube Player API key"';
+
+android.buildTypes.each { type ->
+    type.buildConfigField 'String', 'YOU_TUBE_PLAYER_API_KEY', YOU_TUBE_PLAYER_API_KEY
+}
 
 //Begin: Java8 lambdas
 buildscript {

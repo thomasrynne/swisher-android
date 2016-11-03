@@ -1,6 +1,8 @@
 package thomas.swisher.youtube;
 
 import android.content.Intent;
+import android.net.Uri;
+import android.util.Log;
 
 import com.google.android.gms.auth.GoogleAuthException;
 import com.google.android.gms.auth.GooglePlayServicesAvailabilityException;
@@ -10,12 +12,16 @@ import com.google.common.collect.FluentIterable;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import lombok.Value;
+import lombok.val;
+import thomas.swisher.MediaHandler;
 import thomas.swisher.shared.Core;
 import thomas.swisher.tree.Menus;
 import thomas.swisher.ui.MainActivity;
+import thomas.swisher.utils.Utils;
 
 /**
  * Adds youtube support.
@@ -37,6 +43,26 @@ public class YouTubeSource {
             "This will not be shared or leave the device. When you record a device only the videoID is shared";
 
     private final YouTubeApi youTubeApi;
+
+    public MediaHandler videoHandler() {
+        return new MediaHandler() {
+            @Override
+            public Optional<PlaylistEntry> handle(Utils.FlatJson json) {
+                if (json.has("youtube_video") && json.has("youtube_title") && json.has("youtube_thumbnail")) {
+                    val videoID = json.get("youtube_video");
+                    val title = json.get("youtube_title");
+                    val thumbnail = Uri.parse(json.get("youtube_thumbnail"));
+                    val track = new YouTubeApi.YouTubeVideo(videoID, title, thumbnail);
+                    return Optional.of(new PlaylistEntry(title, Optional.of(thumbnail), Collections.singletonList(track),
+                            (playNow, currentTrack, playNext, listener) ->
+                                    new YouTubeTracksPlayer(playNow, videoID, listener)
+                    ));
+                } else {
+                    return Optional.absent();
+                }
+            }
+        };
+    }
 
     @Value
     private class YouTubeChannelMenu implements Menus.Menu {

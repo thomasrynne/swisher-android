@@ -17,9 +17,10 @@ public interface MediaHandler {
 
     public Optional<PlaylistEntry> handle(Utils.FlatJson json);
 
+    public enum PlayerNotification { Paused, Playing, Finished }
     public interface PlayerListener {
-        //Informs the main player that this player has finished playing all of its tracks
-        public void finished();
+        //Informs the main player that this player has paused/playing/finished all tracks
+        public void notify(PlayerNotification notification);
         //Informs the main player that this player has moved onto the next track in its list
         public void onTrack(boolean autoPlayedThisTrack, int position);
         //Updates the main player with the current progress of the track

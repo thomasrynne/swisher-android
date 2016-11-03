@@ -4,6 +4,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.google.android.gms.auth.GoogleAuthException;
+import com.google.common.base.Optional;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -11,6 +12,7 @@ import java.util.List;
 
 import lombok.Value;
 import lombok.val;
+import thomas.swisher.MediaHandler;
 import thomas.swisher.utils.Utils;
 
 /**
@@ -35,11 +37,10 @@ public class YouTubeApi {
     }
 
     @Value
-    static class YouTubeVideo implements YouTubeSearchItem {
+    static class YouTubeVideo implements YouTubeSearchItem, MediaHandler.TrackDescription {
         public final String videoID;
         public final String title;
         public final Uri thumbnail;
-        public final Uri highQualityThumbnail;
 
         public String name() { return title; }
         public Uri thumbnail() { return thumbnail; }
@@ -47,7 +48,16 @@ public class YouTubeApi {
             return Utils.json().
                 add("youtube_video", videoID).
                 add("youtube_title", title).
-                add("youtube_thumbnail", highQualityThumbnail.toString()).build();
+                add("youtube_thumbnail", thumbnail.toString()).build();
+        }
+
+        @Override
+        public Optional<Uri> image() {
+            //The youtube player is shown in the image area so we don't need or want an image
+            //If there is an image there is a flicker when switching away from you tube where
+            //the image is shown just after the youtube player is hidden and just before the image
+            //of the next track is shown.
+            return Optional.absent();
         }
     }
 
@@ -95,8 +105,7 @@ public class YouTubeApi {
             Utils.FlatJson snippet = entry.object("snippet");
             String title = snippet.get("title");
             String thumbnail = snippet.object("thumbnails").object("high").get("url");
-            String highThumbnail = snippet.object("thumbnails").object("high").get("url");
-            items.add( new YouTubeVideo(videoID, title, Uri.parse(thumbnail), Uri.parse(highThumbnail)) );
+            items.add( new YouTubeVideo(videoID, title, Uri.parse(thumbnail)) );
         }
         return items;
     }

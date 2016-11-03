@@ -43,7 +43,12 @@ Use java 8 lambdas DONE
  - card lookup and json lookup is on background thread. Is that OK?
  - fix Songs class (get automatic updates?)
 
- - play youtube videos <--
+ - play youtube videos
+   * image + video not centered
+   * fullscreen
+   * flicker when finished (shows youtube image)
+   * seek to flicks back and forth
+   * resume fails due to youtube fragment
 
  - support phone layout (try on phone)
  - put on playstore

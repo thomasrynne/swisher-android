@@ -31,6 +31,7 @@ public class UIModel {
 
         private boolean isFullScreen = false;
         private boolean showMenu = false;
+        private boolean showYouTube = true;
         private boolean isPlaying;
         private boolean playNext;
         private Core.PlayerProgress progress = Core.PlayerProgress.Null;
@@ -82,6 +83,15 @@ public class UIModel {
             if (!showMenu) {
                 toggleShowMenu();
             }
+        }
+
+        public boolean showYouTube() {
+            return showYouTube;
+        }
+
+        public void updateYouTubeVisible(boolean visible) {
+            showYouTube = visible;
+            Anvil.render();
         }
 
         private class UpdateProgress implements Runnable {
