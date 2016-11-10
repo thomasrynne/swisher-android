@@ -1,6 +1,8 @@
 package thomas.swisher.ui;
 
+import android.graphics.Color;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.LinearLayout;
 
 import thomas.swisher.ui.model.UIModel;
@@ -24,7 +26,11 @@ import static trikita.anvil.DSL.gravity;
 import static trikita.anvil.DSL.height;
 import static trikita.anvil.DSL.imageView;
 import static trikita.anvil.DSL.linearLayout;
+import static trikita.anvil.DSL.onClick;
+import static trikita.anvil.DSL.onSystemUiVisibilityChange;
 import static trikita.anvil.DSL.orientation;
+import static trikita.anvil.DSL.space;
+import static trikita.anvil.DSL.systemUiVisibility;
 
 /**
  *
@@ -52,12 +58,12 @@ public class MainActivityLayout {
             public void view() {
                 linearLayout(() -> {
                     size(MATCH, MATCH);
-                    padding(0,0,0,0);
-                    padding(15);
+                    padding(coreUI.isFullScreen() ? 0 : 15);
                     orientation(LinearLayout.HORIZONTAL);
 
                     frameLayout(() -> { //---------------------------------[Tracks]
                         size(FILL, FILL);
+                        visibility(!coreUI.isFullScreen());
                         weight(1);
                         gravity(Gravity.TOP);
                         tracksView.view();
@@ -66,37 +72,60 @@ public class MainActivityLayout {
                     linearLayout(() -> { //--------------------------------[Controls]
                         weight(1);
                         orientation(LinearLayout.VERTICAL);
-                        height(FILL);
-
+                        size(FILL, FILL);
                         linearLayout(() -> { //-----------------------------[Buttons]
                             height(WRAP);
+                            visibility(!coreUI.isFullScreen());
                             controlView.view();
                         });
 
                         linearLayout(() -> {
                             height(0);
                             weight(1);
+                            orientation(LinearLayout.HORIZONTAL);
                             layoutGravity(Gravity.CENTER);
+
                             imageView(() -> {    //----------------------------[Main Image]
                                 layoutGravity(Gravity.CENTER);
                                 visibility(!coreUI.showYouTube());
                                 glideURI(coreUI.bigImage());
+                                onClick( view -> coreUI.toggleFullScreen());
                             });
-                            frameLayout(() -> {
+
+                            linearLayout(() -> {
                                 layoutGravity(Gravity.CENTER);
                                 visibility(coreUI.showYouTube());
-                                DSL.id(YOUTUBE_FRAME_LAYOUT_ID);
+                                size(FILL, FILL);
+                                frameLayout(() -> {
+                                    layoutGravity(Gravity.CENTER);
+                                    size(FILL, FILL);
+                                    DSL.id(YOUTUBE_FRAME_LAYOUT_ID);
+                                });
                             });
                         });
                     });
 
                     frameLayout(() -> { //---------------------------------[Menu]
                         weight(1);
-                        visibility(coreUI.showMenu());
+                        visibility(coreUI.showMenu() && !coreUI.isFullScreen());
                         treeMenuView.view();
                         size(FILL, FILL);
                     });
                 });
+
+                systemUiVisibility(coreUI.isFullScreen() ?
+                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION : View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+
+                onSystemUiVisibilityChange((view) -> {
+                    //If Android wants to show controls (because there was a screen touch when in full screen)
+                    //we drop out of full screen mode to show the swisher controls too.
+                    //without this if youtube is off line you can't get back from full screen mode because
+                    //the youtube fullscreen toggle is not shown when offline
+                    if ((view & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0) {
+                        coreUI.updateFullScreen(false);
+                    }
+                });
+
             };
         };
     }

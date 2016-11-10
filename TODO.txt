@@ -34,6 +34,8 @@ Use java 8 lambdas DONE
  - show menu error in menu DONE
  - cancel menu change DONE
  - youtube menu items DONE
+ - play youtube videos DONE
+ - youtube fullscreen DONE
 
  - show fallback image
  - scroll to track on play
@@ -44,8 +46,7 @@ Use java 8 lambdas DONE
  - fix Songs class (get automatic updates?)
 
  - play youtube videos
-   * image + video not centered
-   * fullscreen
+   * big button shows pause when offline (not playing)
    * flicker when finished (shows youtube image)
    * seek to flicks back and forth
    * resume fails due to youtube fragment

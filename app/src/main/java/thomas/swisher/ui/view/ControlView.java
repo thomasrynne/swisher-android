@@ -1,12 +1,10 @@
 package thomas.swisher.ui.view;
 
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.SeekBar;
 
-import lombok.val;
 import thomas.swisher.R;
 import thomas.swisher.shared.Core;
 import thomas.swisher.ui.model.UIControls;
@@ -71,6 +69,18 @@ public class ControlView {
             });
 
             MenuToggle.button(controls.uiRoot(), () -> visibility(!controls.uiRoot().showMenu()));
+
+            imageButton(() -> {
+                centerHorizontal();
+                size(dip(50), dip(50));
+                margin(dip(10), 0, dip(10), 0);
+                alignParentRight();
+                textSize(12);
+                toRightOf(BUTTON);
+                above(BAR);
+                imageResource(R.drawable.fullscreen);
+                onClick((v) -> controls.toFullScreen());
+            });
 
             Core.PlayerProgress progress = controls.progress();
 

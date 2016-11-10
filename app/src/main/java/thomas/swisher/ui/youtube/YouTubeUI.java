@@ -21,6 +21,8 @@ import thomas.swisher.ui.MainActivityLayout;
 import thomas.swisher.ui.model.UIModel;
 import thomas.swisher.youtube.YouTubeEventBus;
 
+import static trikita.anvil.DSL.onSystemUiVisibilityChange;
+
 public class YouTubeUI {
 
     public static final int YOUTUBE_RECOVERY_REQUEST = 999;
@@ -144,7 +146,15 @@ public class YouTubeUI {
         @Override public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer player, boolean wasRestored) {
             initialising = false;
             youTubePlayer = player;
+
             player.addFullscreenControlFlag(YouTubePlayer.FULLSCREEN_FLAG_CUSTOM_LAYOUT);
+
+            player.setOnFullscreenListener(new YouTubePlayer.OnFullscreenListener() {
+                @Override public void onFullscreen(boolean fullScreen) {
+                    model.updateFullScreen(fullScreen);
+                }
+            });
+
             player.setPlaybackEventListener(new YouTubePlayer.PlaybackEventListener() {
                 @Override public void onBuffering(boolean arg0) { }
                 @Override public void onPaused() { send(new YouTubeEventBus.YouTubeStatusUpdate(YouTubeEventBus.YouTubeStatusUpdate.Status.Paused)); }
@@ -152,6 +162,7 @@ public class YouTubeUI {
                 @Override public void onSeekTo(int seekTo) { sendProgress(player); }
                 @Override public void onStopped() {}
             });
+
             player.setPlayerStateChangeListener(new YouTubePlayer.PlayerStateChangeListener() {
                 @Override public void onAdStarted() { }
                 @Override public void onError(YouTubePlayer.ErrorReason reason) {
@@ -164,6 +175,7 @@ public class YouTubeUI {
                 }
                 @Override public void onVideoStarted() {  }
             });
+
             for (WithPlayer action: pending) {
                 action.invoke(youTubePlayer);
             }

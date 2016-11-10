@@ -1,7 +1,5 @@
 package thomas.swisher.ui.model;
 
-import android.util.Log;
-
 /**
  */
 public class UIControls {
@@ -36,8 +34,8 @@ public class UIControls {
 
         }
 
-        public void fullScreen() {
-            uiRoot.fullScreen();
+        public void toFullScreen() {
+            uiRoot.toFullScreen();
         }
 
         public void sendAutoPlayNext(boolean playNext) {

@@ -2,6 +2,7 @@ package thomas.swisher.ui.model;
 
 import android.net.Uri;
 import android.os.Handler;
+import android.util.Log;
 
 import com.google.common.base.Optional;
 
@@ -94,6 +95,15 @@ public class UIModel {
             Anvil.render();
         }
 
+        public void updateFullScreen(boolean fullScreen) {
+            this.isFullScreen = fullScreen;
+            Anvil.render();
+        }
+
+        public void toggleFullScreen() {
+            this.isFullScreen = !this.isFullScreen;
+        }
+
         private class UpdateProgress implements Runnable {
             private final long state;
             UpdateProgress(long state) {
@@ -132,7 +142,11 @@ public class UIModel {
             tracks().rebuild();
         }
 
-        public void fullScreen() {
+        public boolean isFullScreen() {
+            return isFullScreen;
+        }
+
+        public void toFullScreen() {
             isFullScreen = true;
         }
 
