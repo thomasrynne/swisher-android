@@ -82,14 +82,22 @@ public class YouTubeUI {
         }
     };
 
+    private final UIModel.FullScreenListener fullScreenListener = (isFullScreen) -> {
+        if (youTubePlayer != null) {
+            youTubePlayer.setFullscreen(isFullScreen);
+        }
+    };
+
     public YouTubeUI(MainActivity activity, UIModel.CoreModel model) {
         this.activity = activity;
         this.model = model;
         YouTubeEventBus.eventBus.register(listener);
+        model.addFullScreenListener(fullScreenListener);
     }
 
     public void destroy() {
         YouTubeEventBus.eventBus.unregister(listener);
+        model.removeFullScreenListener(fullScreenListener);
     }
 
     public void retryInit() {
@@ -149,11 +157,7 @@ public class YouTubeUI {
 
             player.addFullscreenControlFlag(YouTubePlayer.FULLSCREEN_FLAG_CUSTOM_LAYOUT);
 
-            player.setOnFullscreenListener(new YouTubePlayer.OnFullscreenListener() {
-                @Override public void onFullscreen(boolean fullScreen) {
-                    model.updateFullScreen(fullScreen);
-                }
-            });
+            player.setOnFullscreenListener((fullScreen) -> model.updateFullScreen(fullScreen));
 
             player.setPlaybackEventListener(new YouTubePlayer.PlaybackEventListener() {
                 @Override public void onBuffering(boolean isBuffering) { sendProgress(player, isBuffering); }

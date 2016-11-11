@@ -49,7 +49,6 @@ Next steps
  - card lookup and json lookup is on background thread. Is that OK?
  - fix Songs class (get automatic updates?)
 
-  -youtube fullscreen state not in sync
   -sometimes youtube progress is wrong (moves back on pause)
 
  - support phone layout (try on phone)

@@ -24,11 +24,16 @@ public class UIModel {
 
     private UIModel() {}
 
+    public interface FullScreenListener {
+        void fullScreenChange(boolean isFullScreen);
+    }
+
     public static class CoreModel {
         private final UIMenuModel.Core menu = new UIMenuModel.Core(this);
         private final UIControls.Core controls = new UIControls.Core(this);
         private final UITracks.Model tracks = new UITracks.Model(this);
         private final Handler handler = new Handler();
+        private final LinkedList<FullScreenListener> fullScreenListeners = new LinkedList<>();
         private final Backend backend;
 
         private boolean isFullScreen = false;
@@ -97,13 +102,26 @@ public class UIModel {
             Anvil.render();
         }
 
+        public void addFullScreenListener(FullScreenListener listener) {
+            fullScreenListeners.add(listener);
+        }
+
+        public void removeFullScreenListener(FullScreenListener listener) {
+            fullScreenListeners.remove(listener);
+        }
+
         public void updateFullScreen(boolean fullScreen) {
-            this.isFullScreen = fullScreen;
-            Anvil.render();
+            if (this.isFullScreen != fullScreen) {
+                this.isFullScreen = fullScreen;
+                for (FullScreenListener listener: fullScreenListeners) {
+                    listener.fullScreenChange(fullScreen);
+                }
+                Anvil.render();
+            }
         }
 
         public void toggleFullScreen() {
-            this.isFullScreen = !this.isFullScreen;
+            updateFullScreen(!this.isFullScreen);
         }
 
         private class UpdateProgress implements Runnable {
@@ -160,7 +178,7 @@ public class UIModel {
         }
 
         public void toFullScreen() {
-            isFullScreen = true;
+            updateFullScreen(true);
         }
 
         public boolean showMenu() {
