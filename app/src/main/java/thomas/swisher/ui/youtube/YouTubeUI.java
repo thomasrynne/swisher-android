@@ -21,11 +21,10 @@ import thomas.swisher.ui.MainActivityLayout;
 import thomas.swisher.ui.model.UIModel;
 import thomas.swisher.youtube.YouTubeEventBus;
 
+import static thomas.swisher.ui.MainActivity.YOUTUBE_RECOVERY_REQUEST;
 import static trikita.anvil.DSL.onSystemUiVisibilityChange;
 
 public class YouTubeUI {
-
-    public static final int YOUTUBE_RECOVERY_REQUEST = 999;
 
     private MainActivity activity;
     private UIModel.CoreModel model;
@@ -41,14 +40,8 @@ public class YouTubeUI {
                 case Pause:
                     withYouTubePlayer(player -> player.pause());
                     break;
-                case PausePlay:
-                    withYouTubePlayer(player -> {
-                        if (player.isPlaying()) {
-                            player.pause();
-                        } else {
-                            player.play();
-                        }
-                    });
+                case Play:
+                    withYouTubePlayer(player -> player.play());
                     break;
                 case CueStart:
                     withYouTubePlayer(player -> {
@@ -99,6 +92,10 @@ public class YouTubeUI {
         YouTubeEventBus.eventBus.unregister(listener);
     }
 
+    public void retryInit() {
+        withYouTubePlayer((player) -> {});
+    }
+
     interface WithPlayer {
         void invoke(YouTubePlayer player);
     }
@@ -128,9 +125,12 @@ public class YouTubeUI {
     }
 
     private void sendProgress(YouTubePlayer player) {
+        sendProgress(player, false);
+    }
+    private void sendProgress(YouTubePlayer player, boolean isBuffering) {
         int duration = player.getDurationMillis();
         int position = player.getCurrentTimeMillis();
-        send(new YouTubeEventBus.YouTubeProgressUpdate(duration, position));
+        send(new YouTubeEventBus.YouTubeProgressUpdate(!isBuffering && player.isPlaying(), duration, position));
     }
 
     private OnInitializedListener onInitialiseListener = new OnInitializedListener() {
@@ -156,7 +156,7 @@ public class YouTubeUI {
             });
 
             player.setPlaybackEventListener(new YouTubePlayer.PlaybackEventListener() {
-                @Override public void onBuffering(boolean arg0) { }
+                @Override public void onBuffering(boolean isBuffering) { sendProgress(player, isBuffering); }
                 @Override public void onPaused() { send(new YouTubeEventBus.YouTubeStatusUpdate(YouTubeEventBus.YouTubeStatusUpdate.Status.Paused)); }
                 @Override public void onPlaying() { send(new YouTubeEventBus.YouTubeStatusUpdate(YouTubeEventBus.YouTubeStatusUpdate.Status.Playing)); }
                 @Override public void onSeekTo(int seekTo) { sendProgress(player); }
@@ -166,6 +166,7 @@ public class YouTubeUI {
             player.setPlayerStateChangeListener(new YouTubePlayer.PlayerStateChangeListener() {
                 @Override public void onAdStarted() { }
                 @Override public void onError(YouTubePlayer.ErrorReason reason) {
+                    send(new YouTubeEventBus.YouTubeStatusUpdate(YouTubeEventBus.YouTubeStatusUpdate.Status.Error));
                     Log.e("SWISHER", "YouTube error: " + reason.name());
                 }
                 @Override public void onLoaded(String videoID) { sendProgress(player); }

@@ -25,11 +25,12 @@ public class YouTubeTracksPlayer implements TracksPlayer {
                 case Ended: listener.notify(MediaHandler.PlayerNotification.Finished); break;
                 case Paused: listener.notify(MediaHandler.PlayerNotification.Paused); break;
                 case Playing: listener.notify(MediaHandler.PlayerNotification.Playing); break;
+                case Error: listener.notify(MediaHandler.PlayerNotification.Failed); break;
             }
         }
         @Subscribe(threadMode = ThreadMode.BACKGROUND)
         public void onEvent(YouTubeEventBus.YouTubeProgressUpdate update) {
-            listener.currentProgress(new Core.PlayerProgress(update.durationMillis, update.positionMillis, true));
+            listener.currentProgress(update.isPlaying, new Core.PlayerProgress(update.durationMillis, update.positionMillis, true));
         }
     };
 
@@ -54,8 +55,10 @@ public class YouTubeTracksPlayer implements TracksPlayer {
     }
 
     @Override
-    public void pausePlay() {
-        eventBus.post(new YouTubeEventBus.YouTubeControlCommand(YouTubeEventBus.YouTubeControlCommand.Action.PausePlay));
+    public void pausePlay(boolean play) {
+        eventBus.post(new YouTubeEventBus.YouTubeControlCommand(play ?
+            YouTubeEventBus.YouTubeControlCommand.Action.Play:
+            YouTubeEventBus.YouTubeControlCommand.Action.Pause));
     }
 
     @Override

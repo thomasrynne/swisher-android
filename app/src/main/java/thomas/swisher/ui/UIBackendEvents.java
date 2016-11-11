@@ -51,9 +51,11 @@ public class UIBackendEvents {
 
     //Server -> GUI (*Latest)
 
+    public enum PlayState { Paused, Playing, TryingToPlay, Failed, Empty }
+
     @Value
     public static class TracksLatest {
-        public boolean isPlaying;
+        public PlayState playState;
         public boolean playNext;
         public int currentGroup;
         public int currentTrackInGroup;

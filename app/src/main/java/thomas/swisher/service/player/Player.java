@@ -1,6 +1,7 @@
 package thomas.swisher.service.player;
 
 import android.net.Uri;
+import android.util.Log;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
@@ -61,8 +62,15 @@ public class Player {
             if (Player.this.currentPlayerInstance == event.instance) {
                 switch (event.notification) {
                     case Finished: toNext(); break;
-                    case Paused: isPlaying = false; break;
-                    case Playing: isPlaying = true; break;
+                    case Paused:
+                        isPlaying = false; shouldBePlaying = false;
+                        break;
+                    case Playing:
+                        isPlaying = true; shouldBePlaying = true;
+                        break;
+                    case Failed:
+                        gotError = true; isPlaying = false; shouldBePlaying = false;
+                        break;
                 }
                 broadcastTrackList();
             }
@@ -79,6 +87,7 @@ public class Player {
         public void onEvent(TracksPlayerProgressEvent event) {
             if (Player.this.currentPlayerInstance == event.instance) {
                 Player.this.progress = event.progress;
+                Player.this.isPlaying = event.isPlaying;
                 broadcastTrackList();
             }
         }
@@ -89,7 +98,9 @@ public class Player {
     private int currentPlayerInstance = -1;
     private int currentGroup = -1;
     private int currentTrackInGroup = -1;
+    private boolean gotError = false;
     private boolean isPlaying = false;
+    private boolean shouldBePlaying = false;
     private boolean playNext = true;
     private TracksPlayer currentPlayer = new NullTracksPlayer();
 
@@ -109,6 +120,7 @@ public class Player {
     @Value
     private static class TracksPlayerProgressEvent {
         public final int instance;
+        public final boolean isPlaying;
         public final Core.PlayerProgress progress;
     }
 
@@ -132,8 +144,8 @@ public class Player {
             eventBus.post(new TracksPlayerOnTrackEvent(instance, autoPlayedThisTrack, track));
         }
         @Override
-        public void currentProgress(Core.PlayerProgress progress) {
-            eventBus.post(new TracksPlayerProgressEvent(instance, progress));
+        public void currentProgress(boolean isPlaying, Core.PlayerProgress progress) {
+            eventBus.post(new TracksPlayerProgressEvent(instance, isPlaying, progress));
         }
     }
 
@@ -146,6 +158,7 @@ public class Player {
         if (playlist.size() == 1) { //only one group, just cueBeginning start
             currentTrackInGroup = 0;
             isPlaying = false;
+            shouldBePlaying = false;
             currentPlayer.cueBeginning();
         } else if ((currentGroup+1) < playlist.size()) { //there is a next group, play/cue it
             currentGroup++;
@@ -160,10 +173,13 @@ public class Player {
     }
 
     private void initPlayer(MediaHandler.ThePlayer player, boolean playNow, int currentTrack) {
+        gotError = false;
         currentPlayer.clear();
         currentPlayerInstance = sequence.incrementAndGet();
         currentPlayer = player.create(playNow, currentTrack, playNext, new ListenerForPlayer(currentPlayerInstance));
         progress = Core.PlayerProgress.Null;
+        isPlaying = false;
+        shouldBePlaying = playNow;
     }
 
     public void play(List<PlaylistEntry> playlistEntries) {
@@ -208,7 +224,6 @@ public class Player {
                 initPlayer(playlist.get(0).entry.player, false, 0);
                 currentGroup = 0;
                 currentTrackInGroup = 0;
-                isPlaying = false;
             } else {
                 nullOutPlayer();
             }
@@ -227,13 +242,14 @@ public class Player {
     }
 
     public void pausePlay() {
-        isPlaying = !isPlaying;
-        currentPlayer.pausePlay();
+        shouldBePlaying = !shouldBePlaying;
+        currentPlayer.pausePlay(shouldBePlaying);
         broadcastTrackList();
     }
     public void stop() {
         currentPlayer.stop();
         isPlaying = false;
+        shouldBePlaying = false;
         broadcastTrackList();
     }
 
@@ -248,16 +264,16 @@ public class Player {
     }
 
     public void playTrackAt(int group, int track) {
-        if (currentGroup != group) {
+        if (currentGroup != group || gotError) {
             currentGroup = group;
             currentTrackInGroup = track;
             initPlayer(playlist.get(group).entry.player, true, track);
         } else {
             currentTrackInGroup = track;
             currentPlayer.jumpTo(track);
+            isPlaying = false;
             progress = Core.PlayerProgress.Null;
         }
-        isPlaying = true;
         broadcastTrackList();
     }
 
@@ -270,6 +286,7 @@ public class Player {
         currentGroup = -1;
         currentTrackInGroup = -1;
         isPlaying = false;
+        shouldBePlaying = false;
     }
 
     public void clearPlaylist() {
@@ -291,8 +308,16 @@ public class Player {
             }
             trackGroups.add(new Core.PlaylistEntry(entry.id, entry.name(), entry.thumbnail(), tracks));
         }
+        val playState = gotError ?
+            UIBackendEvents.PlayState.Failed :
+            (playlist.isEmpty() ? UIBackendEvents.PlayState.Empty :
+                (shouldBePlaying ?
+                    isPlaying ?
+                        UIBackendEvents.PlayState.Playing:
+                        UIBackendEvents.PlayState.TryingToPlay :
+                    UIBackendEvents.PlayState.Paused));
         eventBus.postSticky(new UIBackendEvents.TracksLatest(
-                isPlaying, playNext, currentGroup, currentTrackInGroup,
+                playState, playNext, currentGroup, currentTrackInGroup,
                 trackGroups, progress));
     }
 

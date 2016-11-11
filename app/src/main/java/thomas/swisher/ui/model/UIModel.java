@@ -2,9 +2,10 @@ package thomas.swisher.ui.model;
 
 import android.net.Uri;
 import android.os.Handler;
-import android.util.Log;
 
 import com.google.common.base.Optional;
+
+import java.util.LinkedList;
 
 import thomas.swisher.shared.Core;
 import thomas.swisher.ui.UIBackendEvents;
@@ -33,10 +34,11 @@ public class UIModel {
         private boolean isFullScreen = false;
         private boolean showMenu = false;
         private boolean showYouTube = true;
-        private boolean isPlaying;
+        private UIControls.ButtonState buttonState = UIControls.ButtonState.NONE;
+        private boolean isActuallingPlaying;
         private boolean playNext;
-        private Core.PlayerProgress progress = Core.PlayerProgress.Null;
 
+        private Core.PlayerProgress progress = Core.PlayerProgress.Null;
         private long lastRealProgressUpdateTime = 0;
         private long progressAtLastRealUpdate = 0;
         private long currentState = 0;
@@ -125,15 +127,26 @@ public class UIModel {
         }
 
         public void update(UIBackendEvents.TracksLatest tracks) {
-            this.isPlaying = tracks.isPlaying;
+            this.isActuallingPlaying = tracks.playState == UIBackendEvents.PlayState.Playing;
+            this.buttonState = calculateButtonState(tracks.playState);
             this.playNext = tracks.playNext;
             this.progress = tracks.progress;
             this.tracks.latest(tracks.tracks, tracks.currentGroup, tracks.currentTrackInGroup);
             currentState++;
-            if (!activityPaused && isPlaying) {
+            if (!activityPaused && isActuallingPlaying) {
                 this.progressAtLastRealUpdate = tracks.progress.progressMillis;
                 this.lastRealProgressUpdateTime = System.currentTimeMillis();
                 triggerProgressUpdate();
+            }
+        }
+
+        private UIControls.ButtonState calculateButtonState(UIBackendEvents.PlayState playState) {
+            switch (playState) {
+                case Paused: return UIControls.ButtonState.PLAY;
+                case Playing: return UIControls.ButtonState.PAUSE;
+                case TryingToPlay: return UIControls.ButtonState.PAUSE;
+                case Failed: return UIControls.ButtonState.NONE;
+                default: throw new IllegalStateException("Unhandled enum value " + playState);
             }
         }
 
@@ -154,20 +167,16 @@ public class UIModel {
             return showMenu;
         }
 
-        public boolean hasPlaylist() {
-            return tracks.nonEmpty();
-        }
-
-        public boolean isPlaying() {
-            return isPlaying;
-        }
-
         public void pausePlay() {
             backend.pausePlay();
         }
 
         public Backend backend() {
             return backend;
+        }
+
+        public UIControls.ButtonState buttonState() {
+            return buttonState;
         }
 
         public void addToPlaylist(Utils.FlatJson json) {

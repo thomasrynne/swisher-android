@@ -14,19 +14,20 @@ public class YouTubeEventBus {
 
     @Value
     public static class YouTubeStatusUpdate {
-        public enum Status { Paused, Playing, Ended }
+        public enum Status { Paused, Playing, Ended, Error }
         public final Status status;
     }
 
     @Value
     public static class YouTubeProgressUpdate {
+        public boolean isPlaying;
         public final int durationMillis;
         public final int positionMillis;
     }
 
     @Value
     public static class YouTubeControlCommand {
-        public enum Action { Pause, PausePlay, CueStart, Clear }
+        public enum Action { Pause, Play, CueStart, Clear }
         public final Action action;
     }
 

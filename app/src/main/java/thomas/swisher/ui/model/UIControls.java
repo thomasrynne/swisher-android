@@ -13,10 +13,6 @@ public class UIControls {
             this.uiRoot = uiRoot;
         }
 
-        public boolean isPlaying() {
-            return uiRoot.isPlaying();
-        }
-
         public boolean isPlayNext() {
             return uiRoot.isPlayNext();
         }
@@ -26,12 +22,7 @@ public class UIControls {
         }
 
         public ButtonState buttonState() {
-            if (uiRoot.hasPlaylist()) {
-                return isPlaying() ? ButtonState.PAUSE : ButtonState.PLAY;
-            } else {
-                return ButtonState.NONE;
-            }
-
+            return uiRoot.buttonState();
         }
 
         public void toFullScreen() {

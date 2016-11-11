@@ -24,6 +24,7 @@ import thomas.swisher.ui.model.UIModel;
 public class MainActivity extends AppCompatActivity {
 
     public static final int YOUTUBE_AUTH_REQUEST_CODE = 1234;
+    public static final int YOUTUBE_RECOVERY_REQUEST = 999;
 
     private EventBus eventBus = EventBus.getDefault();
     private OnKeyCardReader activityCardReader = new OnKeyCardReader(EventBus.getDefault());
@@ -85,10 +86,17 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == YOUTUBE_AUTH_REQUEST_CODE) {
-            // go back to youtube menu if the user has come back from auth/play services install
-            coreUI.menu().goToMenu(YouTubeSource.MENU_PATH);
+        switch(requestCode) {
+            case YOUTUBE_AUTH_REQUEST_CODE:
+                // go back to youtube menu if the user has come back from auth/play services install
+                coreUI.menu().goToMenu(YouTubeSource.MENU_PATH);
+                break;
+            case YOUTUBE_RECOVERY_REQUEST:
+                // user has returned after installing / updating youtube
+                youTubeUI.retryInit();
+                break;
         }
+
     }
 
 

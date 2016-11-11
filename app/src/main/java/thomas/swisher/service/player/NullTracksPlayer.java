@@ -15,7 +15,7 @@ public class NullTracksPlayer implements TracksPlayer {
     }
 
     @Override
-    public void pausePlay() {
+    public void pausePlay(boolean play) {
 
     }
 

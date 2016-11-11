@@ -17,16 +17,23 @@ public interface MediaHandler {
 
     public Optional<PlaylistEntry> handle(Utils.FlatJson json);
 
-    public enum PlayerNotification { Paused, Playing, Finished }
+    public enum PlayerNotification { Paused, Playing, Finished, Failed }
     public interface PlayerListener {
-        //Informs the main player that this player has paused/playing/finished all tracks
+        /**
+         * Informs the main player that this player has paused/playing/finished all tracks
+         */
         public void notify(PlayerNotification notification);
-        //Informs the main player that this player has moved onto the next track in its list
+        /**
+         * Informs the main player that this player has moved onto the next track in its list
+         */
         public void onTrack(boolean autoPlayedThisTrack, int position);
-        //Updates the main player with the current progress of the track
-        //This should be called each time a new track starts and on pause/play events
-        //The ui will assume that when a track is playing progress proceeds at 1ms per ms ;)
-        public void currentProgress(Core.PlayerProgress progress);
+        /**
+         * Updates the main player with the current progress of the track
+         * This should be called when the player is loaded and on pause/play events
+         * The ui will assume that when a track is playing progress proceeds at 1ms per ms ;)
+         * So there is no need to provide constant updates
+         */
+        public void currentProgress(boolean isPlaying, Core.PlayerProgress progress);
     }
 
     public interface ThePlayer {

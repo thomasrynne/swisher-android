@@ -273,18 +273,17 @@ public class MediaStoreSource {
                     listener.notify(MediaHandler.PlayerNotification.Finished);
                 }
             }
-            public void onReady() {
-                broadcastPosition();
+            public void onReady(boolean playing) {
+                listener.currentProgress(playing, mediaPlayer.progress());
             }
         };
 
         private void broadcastPosition() {
-            listener.currentProgress(mediaPlayer.progress());
+            listener.currentProgress(mediaPlayer.isPlaying(), mediaPlayer.progress());
         }
 
         private void playCurrent(boolean playNow) {
             mediaPlayer.play(tracks.get(currentTrack).path.getPath(), 0, playNow);
-            broadcastPosition();
         }
 
         LocalMediaPlayer(List<Track> tracks, boolean playNow, int currentTrack, boolean playNext, MediaHandler.PlayerListener listener) {
@@ -308,8 +307,8 @@ public class MediaStoreSource {
         }
 
         @Override
-        public void pausePlay() {
-            mediaPlayer.pausePlay();
+        public void pausePlay(boolean play) {
+            mediaPlayer.pausePlay(play);
             broadcastPosition();
         }
 
