@@ -38,7 +38,10 @@ public class YouTubeUI {
         public void onEvent(YouTubeEventBus.YouTubeControlCommand command) {
             switch(command.action) {
                 case Pause:
-                    withYouTubePlayer(player -> player.pause());
+                    withYouTubePlayer(player -> {
+                        player.pause();
+                        sendProgress();
+                    } );
                     break;
                 case Play:
                     withYouTubePlayer(player -> player.play());
@@ -50,9 +53,7 @@ public class YouTubeUI {
                     });
                     break;
                 case Clear:
-                    if (youTubePlayer != null) {
-                        youTubePlayer.pause();
-                    }
+                    safePause();
                     model.updateYouTubeVisible(false);
                     break;
             }
@@ -78,9 +79,19 @@ public class YouTubeUI {
         }
         @Subscribe(threadMode = ThreadMode.MAIN)
         public void onEvent(YouTubeEventBus.YouTubeProgressUpdateCommand command) {
-            withYouTubePlayer(player -> sendProgress(player));
+            sendProgress();
         }
     };
+
+    private void safePause() {
+        if (youTubePlayer != null) {
+            try {
+                youTubePlayer.pause();
+            } catch (IllegalStateException e) {
+                //handles "YouTubePlayer has been released" error
+            }
+        }
+    }
 
     private final UIModel.FullScreenListener fullScreenListener = (isFullScreen) -> {
         if (youTubePlayer != null) {
@@ -101,7 +112,11 @@ public class YouTubeUI {
     }
 
     public void retryInit() {
-        withYouTubePlayer((player) -> {});
+        if (youTubePlayer == null) {
+            youTubePlayerFragment.initialize(
+                BuildConfig.YOU_TUBE_PLAYER_API_KEY,
+                onInitialiseListener);
+        }
     }
 
     interface WithPlayer {
@@ -124,7 +139,14 @@ public class YouTubeUI {
             pending.add(action);
         } else {
             model.updateYouTubeVisible(true);
-            action.invoke(youTubePlayer);
+            try {
+                action.invoke(youTubePlayer);
+            } catch (IllegalStateException e) {
+                //handles "YouTubePlayer has been released" error
+                youTubePlayer = null;
+                pending.add(action);
+                retryInit();
+            }
         }
     }
 
@@ -132,13 +154,15 @@ public class YouTubeUI {
         YouTubeEventBus.eventBus.post(update);
     }
 
-    private void sendProgress(YouTubePlayer player) {
-        sendProgress(player, false);
+    private void sendProgress() {
+        sendProgress(false);
     }
-    private void sendProgress(YouTubePlayer player, boolean isBuffering) {
-        int duration = player.getDurationMillis();
-        int position = player.getCurrentTimeMillis();
-        send(new YouTubeEventBus.YouTubeProgressUpdate(!isBuffering && player.isPlaying(), duration, position));
+    private void sendProgress(boolean isBuffering) {
+        withYouTubePlayer(player -> {
+            int duration = player.getDurationMillis();
+            int position = player.getCurrentTimeMillis();
+            send(new YouTubeEventBus.YouTubeProgressUpdate(!isBuffering && player.isPlaying(), duration, position));
+        });
     }
 
     private OnInitializedListener onInitialiseListener = new OnInitializedListener() {
@@ -160,10 +184,10 @@ public class YouTubeUI {
             player.setOnFullscreenListener((fullScreen) -> model.updateFullScreen(fullScreen));
 
             player.setPlaybackEventListener(new YouTubePlayer.PlaybackEventListener() {
-                @Override public void onBuffering(boolean isBuffering) { sendProgress(player, isBuffering); }
+                @Override public void onBuffering(boolean isBuffering) { sendProgress(isBuffering); }
                 @Override public void onPaused() { send(new YouTubeEventBus.YouTubeStatusUpdate(YouTubeEventBus.YouTubeStatusUpdate.Status.Paused)); }
                 @Override public void onPlaying() { send(new YouTubeEventBus.YouTubeStatusUpdate(YouTubeEventBus.YouTubeStatusUpdate.Status.Playing)); }
-                @Override public void onSeekTo(int seekTo) { sendProgress(player); }
+                @Override public void onSeekTo(int seekTo) { sendProgress(); }
                 @Override public void onStopped() {}
             });
 
@@ -173,7 +197,7 @@ public class YouTubeUI {
                     send(new YouTubeEventBus.YouTubeStatusUpdate(YouTubeEventBus.YouTubeStatusUpdate.Status.Error));
                     Log.e("SWISHER", "YouTube error: " + reason.name());
                 }
-                @Override public void onLoaded(String videoID) { sendProgress(player); }
+                @Override public void onLoaded(String videoID) { sendProgress(); }
                 @Override public void onLoading() { }
                 @Override public void onVideoEnded() {
                     send(new YouTubeEventBus.YouTubeStatusUpdate(YouTubeEventBus.YouTubeStatusUpdate.Status.Ended));
