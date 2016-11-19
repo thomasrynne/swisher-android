@@ -1,14 +1,12 @@
 package thomas.swisher.youtube;
 
-import android.util.Log;
-
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import lombok.val;
 import thomas.swisher.MediaHandler;
 import thomas.swisher.service.player.TracksPlayer;
 import thomas.swisher.shared.Core;
+import thomas.swisher.utils.AsyncProxy;
 
 import static thomas.swisher.youtube.YouTubeEventBus.eventBus;
 
@@ -22,10 +20,10 @@ public class YouTubeTracksPlayer implements TracksPlayer {
         @Subscribe(threadMode = ThreadMode.BACKGROUND)
         public void onEvent(YouTubeEventBus.YouTubeStatusUpdate update) {
             switch(update.status) {
-                case Ended: listener.notify(MediaHandler.PlayerNotification.Finished); break;
-                case Paused: listener.notify(MediaHandler.PlayerNotification.Paused); break;
-                case Playing: listener.notify(MediaHandler.PlayerNotification.Playing); break;
-                case Error: listener.notify(MediaHandler.PlayerNotification.Failed); break;
+                case Ended:   listener.notify(MediaHandler.PlayerNotification.Finished); break;
+                case Paused:  listener.notify(MediaHandler.PlayerNotification.Paused);   break;
+                case Playing: listener.notify(MediaHandler.PlayerNotification.Playing);  break;
+                case Error:   listener.notify(MediaHandler.PlayerNotification.Failed);   break;
             }
         }
         @Subscribe(threadMode = ThreadMode.BACKGROUND)
@@ -34,36 +32,35 @@ public class YouTubeTracksPlayer implements TracksPlayer {
         }
     };
 
-    private MediaHandler.PlayerListener listener;
-
+    private final MediaHandler.PlayerListener listener;
+    private final YouTubeEventBus.YouTubePlayerRemote youTubeRemote;
     public YouTubeTracksPlayer(boolean playNow, String videoID, MediaHandler.PlayerListener listener) {
         this.listener = listener;
+        this.youTubeRemote = AsyncProxy.create(YouTubeEventBus.YouTubePlayerRemote.class, eventBus);
         eventBus.register(eventBusListener);
-        val action = playNow ? YouTubeEventBus.YouTubePlayCommand.Action.PlayFromStart :
-            YouTubeEventBus.YouTubePlayCommand.Action.CueFromStart;
-        eventBus.post(new YouTubeEventBus.YouTubePlayCommand(action, videoID));
+        this.youTubeRemote.playCommand(videoID, playNow);
     }
 
     @Override
     public void cueBeginning() {
-        eventBus.post(new YouTubeEventBus.YouTubeControlCommand(YouTubeEventBus.YouTubeControlCommand.Action.CueStart));
+        youTubeRemote.actionCommand(YouTubeEventBus.Action.CueStart);
     }
 
     @Override
     public void stop() {
-        eventBus.post(new YouTubeEventBus.YouTubeControlCommand(YouTubeEventBus.YouTubeControlCommand.Action.Pause));
+        youTubeRemote.actionCommand(YouTubeEventBus.Action.Pause);
     }
 
     @Override
     public void pausePlay(boolean play) {
-        eventBus.post(new YouTubeEventBus.YouTubeControlCommand(play ?
-            YouTubeEventBus.YouTubeControlCommand.Action.Play:
-            YouTubeEventBus.YouTubeControlCommand.Action.Pause));
+        youTubeRemote.actionCommand(play ?
+            YouTubeEventBus.Action.Play:
+            YouTubeEventBus.Action.Pause);
     }
 
     @Override
     public void clear() {
-        eventBus.post(new YouTubeEventBus.YouTubeControlCommand(YouTubeEventBus.YouTubeControlCommand.Action.Clear));
+        youTubeRemote.actionCommand(YouTubeEventBus.Action.Clear);
         eventBus.unregister(eventBusListener);
     }
 
@@ -79,11 +76,11 @@ public class YouTubeTracksPlayer implements TracksPlayer {
 
     @Override
     public void seekTo(int toMillis) {
-        eventBus.post(new YouTubeEventBus.YouTubeSeekCommand(toMillis));
+        youTubeRemote.seekTo(toMillis);
     }
 
     @Override
     public void requestProgressUpdate() {
-        eventBus.post(new YouTubeEventBus.YouTubeProgressUpdateCommand());
+        youTubeRemote.progressUpdate();
     }
 }

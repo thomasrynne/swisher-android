@@ -9,9 +9,6 @@ import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayer.OnInitializedListener;
 import com.google.android.youtube.player.YouTubePlayerSupportFragment;
 
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
 import java.util.LinkedList;
 import java.util.List;
 
@@ -19,13 +16,14 @@ import thomas.swisher.BuildConfig;
 import thomas.swisher.ui.MainActivity;
 import thomas.swisher.ui.MainActivityLayout;
 import thomas.swisher.ui.model.UIModel;
+import thomas.swisher.utils.AsyncProxy;
 import thomas.swisher.youtube.YouTubeEventBus;
 
 import static thomas.swisher.ui.MainActivity.YOUTUBE_RECOVERY_REQUEST;
-import static trikita.anvil.DSL.onSystemUiVisibilityChange;
 
 public class YouTubeUI {
 
+    private final AsyncProxy.MethodInvocationListener proxyListener;
     private MainActivity activity;
     private UIModel.CoreModel model;
     private boolean initialising = false;
@@ -33,10 +31,10 @@ public class YouTubeUI {
     private YouTubePlayer youTubePlayer = null;
     private List<WithPlayer> pending = new LinkedList<>();
 
-    private final Object listener = new Object() {
-        @Subscribe(threadMode = ThreadMode.MAIN)
-        public void onEvent(YouTubeEventBus.YouTubeControlCommand command) {
-            switch(command.action) {
+    private final YouTubeEventBus.YouTubePlayerRemote listener = new YouTubeEventBus.YouTubePlayerRemote() {
+        @Override
+        public void actionCommand(YouTubeEventBus.Action action) {
+            switch(action) {
                 case Pause:
                     withYouTubePlayer(player -> {
                         player.pause();
@@ -58,27 +56,25 @@ public class YouTubeUI {
                     break;
             }
         }
-        @Subscribe(threadMode = ThreadMode.MAIN)
-        public void onEvent(YouTubeEventBus.YouTubePlayCommand command) {
-            switch (command.action) {
-                case CueFromStart:
-                    withYouTubePlayer(player -> {
-                        player.cueVideo(command.videoID, 0);
-                    });
-                    break;
-                case PlayFromStart:
-                    withYouTubePlayer(player -> {
-                        player.loadVideo(command.videoID, 0);
-                    });
-                    break;
-            }
+
+        @Override
+        public void playCommand(String videoID, boolean playNow) {
+            withYouTubePlayer(player -> {
+                if (playNow) {
+                    player.loadVideo(videoID, 0);
+                } else {
+                    player.cueVideo(videoID, 0);
+                }
+            });
         }
-        @Subscribe(threadMode = ThreadMode.MAIN)
-        public void onEvent(YouTubeEventBus.YouTubeSeekCommand command) {
-            withYouTubePlayer(player -> player.seekToMillis(command.toMillis));
+
+        @Override
+        public void seekTo(int toMillis) {
+            withYouTubePlayer(player -> player.seekToMillis(toMillis));
         }
-        @Subscribe(threadMode = ThreadMode.MAIN)
-        public void onEvent(YouTubeEventBus.YouTubeProgressUpdateCommand command) {
+
+        @Override
+        public void progressUpdate() {
             sendProgress();
         }
     };
@@ -102,12 +98,12 @@ public class YouTubeUI {
     public YouTubeUI(MainActivity activity, UIModel.CoreModel model) {
         this.activity = activity;
         this.model = model;
-        YouTubeEventBus.eventBus.register(listener);
+        this.proxyListener = new AsyncProxy.MethodInvocationListener(listener, YouTubeEventBus.eventBus);
         model.addFullScreenListener(fullScreenListener);
     }
 
     public void destroy() {
-        YouTubeEventBus.eventBus.unregister(listener);
+        proxyListener.finish();
         model.removeFullScreenListener(fullScreenListener);
     }
 
@@ -185,8 +181,8 @@ public class YouTubeUI {
 
             player.setPlaybackEventListener(new YouTubePlayer.PlaybackEventListener() {
                 @Override public void onBuffering(boolean isBuffering) { sendProgress(isBuffering); }
-                @Override public void onPaused() { send(new YouTubeEventBus.YouTubeStatusUpdate(YouTubeEventBus.YouTubeStatusUpdate.Status.Paused)); }
-                @Override public void onPlaying() { send(new YouTubeEventBus.YouTubeStatusUpdate(YouTubeEventBus.YouTubeStatusUpdate.Status.Playing)); }
+                @Override public void onPaused() { send(new YouTubeEventBus.YouTubeStatusUpdate(YouTubeEventBus.Status.Paused)); }
+                @Override public void onPlaying() { send(new YouTubeEventBus.YouTubeStatusUpdate(YouTubeEventBus.Status.Playing)); }
                 @Override public void onSeekTo(int seekTo) { sendProgress(); }
                 @Override public void onStopped() {}
             });
@@ -194,13 +190,13 @@ public class YouTubeUI {
             player.setPlayerStateChangeListener(new YouTubePlayer.PlayerStateChangeListener() {
                 @Override public void onAdStarted() { }
                 @Override public void onError(YouTubePlayer.ErrorReason reason) {
-                    send(new YouTubeEventBus.YouTubeStatusUpdate(YouTubeEventBus.YouTubeStatusUpdate.Status.Error));
+                    send(new YouTubeEventBus.YouTubeStatusUpdate(YouTubeEventBus.Status.Error));
                     Log.e("SWISHER", "YouTube error: " + reason.name());
                 }
                 @Override public void onLoaded(String videoID) { sendProgress(); }
                 @Override public void onLoading() { }
                 @Override public void onVideoEnded() {
-                    send(new YouTubeEventBus.YouTubeStatusUpdate(YouTubeEventBus.YouTubeStatusUpdate.Status.Ended));
+                    send(new YouTubeEventBus.YouTubeStatusUpdate(YouTubeEventBus.Status.Ended));
                 }
                 @Override public void onVideoStarted() {  }
             });

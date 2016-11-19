@@ -39,17 +39,19 @@ Next steps
  - youtube fullscreen DONE
  - handle youtube offline DONE
 
+ - make doit actions buttons
+ - About in menu
+ -sometimes youtube progress is wrong (moves back on pause)
+
+ - youtube playlists
  - show fallback image
  - scroll to track on play
- - make doit actions buttons
- - youtube playlists
- - About in menu
  - show message for empty playlist
+ - proguard
 
  - card lookup and json lookup is on background thread. Is that OK?
  - fix Songs class (get automatic updates?)
 
-  -sometimes youtube progress is wrong (moves back on pause)
 
  - support phone layout (try on phone)
   * big button isn't round and is too big
