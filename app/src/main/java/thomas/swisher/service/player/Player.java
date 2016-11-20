@@ -79,6 +79,7 @@ public class Player {
         public void onEvent(TracksPlayerOnTrackEvent event) {
             if (Player.this.currentPlayerInstance == event.instance) {
                 Player.this.currentTrackInGroup = event.track;
+                Player.this.shouldBePlaying = event.autoPlayedThisTrack;
                 Player.this.isPlaying = event.autoPlayedThisTrack;
                 broadcastTrackList();
             }
