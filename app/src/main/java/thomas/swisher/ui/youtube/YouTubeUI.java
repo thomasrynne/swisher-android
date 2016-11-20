@@ -23,7 +23,8 @@ import static thomas.swisher.ui.MainActivity.YOUTUBE_RECOVERY_REQUEST;
 
 public class YouTubeUI {
 
-    private final AsyncProxy.MethodInvocationListener proxyListener;
+    private final AsyncProxy.MethodInvocationListenerForMain youTubeRemoteHandler;
+    private final YouTubeEventBus.YouTubePlayerCallback youTubePlayerCallback;
     private MainActivity activity;
     private UIModel.CoreModel model;
     private boolean initialising = false;
@@ -34,6 +35,7 @@ public class YouTubeUI {
     private final YouTubeEventBus.YouTubePlayerRemote listener = new YouTubeEventBus.YouTubePlayerRemote() {
         @Override
         public void actionCommand(YouTubeEventBus.Action action) {
+            Log.i("SWISHER", "in actionCommand " + action + " " + (youTubePlayer==null));
             switch(action) {
                 case Pause:
                     withYouTubePlayer(player -> {
@@ -42,7 +44,7 @@ public class YouTubeUI {
                     } );
                     break;
                 case Play:
-                    withYouTubePlayer(player -> player.play());
+                    withYouTubePlayer(player -> { player.play(); Log.i("SWISHER", "play"); });
                     break;
                 case CueStart:
                     withYouTubePlayer(player -> {
@@ -98,12 +100,13 @@ public class YouTubeUI {
     public YouTubeUI(MainActivity activity, UIModel.CoreModel model) {
         this.activity = activity;
         this.model = model;
-        this.proxyListener = new AsyncProxy.MethodInvocationListener(listener, YouTubeEventBus.eventBus);
+        this.youTubeRemoteHandler = YouTubeEventBus.createYouTubeRemoteListener(listener);
+        this.youTubePlayerCallback = YouTubeEventBus.createYouTubePlayerCallbackProxy();
         model.addFullScreenListener(fullScreenListener);
     }
 
     public void destroy() {
-        proxyListener.finish();
+        youTubeRemoteHandler.finish();
         model.removeFullScreenListener(fullScreenListener);
     }
 
@@ -146,10 +149,6 @@ public class YouTubeUI {
         }
     }
 
-    private void send(Object update) {
-        YouTubeEventBus.eventBus.post(update);
-    }
-
     private void sendProgress() {
         sendProgress(false);
     }
@@ -157,7 +156,7 @@ public class YouTubeUI {
         withYouTubePlayer(player -> {
             int duration = player.getDurationMillis();
             int position = player.getCurrentTimeMillis();
-            send(new YouTubeEventBus.YouTubeProgressUpdate(!isBuffering && player.isPlaying(), duration, position));
+            youTubePlayerCallback.progress(!isBuffering && player.isPlaying(), duration, position);
         });
     }
 
@@ -181,8 +180,8 @@ public class YouTubeUI {
 
             player.setPlaybackEventListener(new YouTubePlayer.PlaybackEventListener() {
                 @Override public void onBuffering(boolean isBuffering) { sendProgress(isBuffering); }
-                @Override public void onPaused() { send(new YouTubeEventBus.YouTubeStatusUpdate(YouTubeEventBus.Status.Paused)); }
-                @Override public void onPlaying() { send(new YouTubeEventBus.YouTubeStatusUpdate(YouTubeEventBus.Status.Playing)); }
+                @Override public void onPaused() { youTubePlayerCallback.status(YouTubeEventBus.Status.Paused); }
+                @Override public void onPlaying() { youTubePlayerCallback.status(YouTubeEventBus.Status.Playing); }
                 @Override public void onSeekTo(int seekTo) { sendProgress(); }
                 @Override public void onStopped() {}
             });
@@ -190,13 +189,13 @@ public class YouTubeUI {
             player.setPlayerStateChangeListener(new YouTubePlayer.PlayerStateChangeListener() {
                 @Override public void onAdStarted() { }
                 @Override public void onError(YouTubePlayer.ErrorReason reason) {
-                    send(new YouTubeEventBus.YouTubeStatusUpdate(YouTubeEventBus.Status.Error));
+                    youTubePlayerCallback.status(YouTubeEventBus.Status.Error);
                     Log.e("SWISHER", "YouTube error: " + reason.name());
                 }
                 @Override public void onLoaded(String videoID) { sendProgress(); }
                 @Override public void onLoading() { }
                 @Override public void onVideoEnded() {
-                    send(new YouTubeEventBus.YouTubeStatusUpdate(YouTubeEventBus.Status.Ended));
+                    youTubePlayerCallback.status(YouTubeEventBus.Status.Ended);
                 }
                 @Override public void onVideoStarted() {  }
             });

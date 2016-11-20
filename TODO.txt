@@ -41,7 +41,8 @@ Next steps
 
  - make doit actions buttons
  - About in menu
- -sometimes youtube progress is wrong (moves back on pause)
+ - sometimes youtube progress is wrong (moves back on pause)
+ - store youtube position and video for onPause/onResume
 
  - youtube playlists
  - show fallback image
